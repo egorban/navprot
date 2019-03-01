@@ -147,27 +147,27 @@ func (packetData *NDTP) Print() string {
 }
 
 // IsResult returns true, if packetData is a NPH_RESULT.
-func IsResult(packetData *NDTP) bool {
+func (packetData *NDTP) IsResult() bool {
 	return packetData.Nph.PacketType == 0
 }
 
 // PacketType returns name of NDTP packet type.
-func PacketType(ndtp *NDTP) (ptype string) {
-	switch ndtp.Nph.ServiceID {
+func (packetData *NDTP) PacketType() (ptype string) {
+	switch packetData.Nph.ServiceID {
 	case NphSrvGenericControls:
-		if ndtp.Nph.PacketType == nphSgcConnRequest {
+		if packetData.Nph.PacketType == nphSgcConnRequest {
 			ptype = NphSgsConnRequest
 		}
 	case NphSrvNavdata:
-		if ndtp.Nph.PacketType == nphSndHistory {
+		if packetData.Nph.PacketType == nphSndHistory {
 			ptype = NphSndHistory
-		} else if ndtp.Nph.PacketType == nphSndRealtime {
+		} else if packetData.Nph.PacketType == nphSndRealtime {
 			ptype = NphSndRealtime
 		}
 	case NphSrvExternalDevice:
-		if ndtp.Nph.PacketType == nphSedDeviceTitleData {
+		if packetData.Nph.PacketType == nphSedDeviceTitleData {
 			ptype = NphSedDeviceTitleData
-		} else if ndtp.Nph.PacketType == nphSedDeviceResult {
+		} else if packetData.Nph.PacketType == nphSedDeviceResult {
 			ptype = NphSedDeviceResult
 		}
 	}
@@ -187,7 +187,7 @@ func parseNPH(message []byte, packetData *NDTP) (err error) {
 		packetData.Nph.RequestFlag = true
 	}
 	packetData.Nph.ReqID = binary.LittleEndian.Uint32(message[6:10])
-	if IsResult(packetData) {
+	if packetData.IsResult() {
 		packetData.Nph.Data = binary.LittleEndian.Uint32(message[nphHeaderLen : nphHeaderLen+4])
 		return
 	}
@@ -236,14 +236,14 @@ func parseNavData(packetData *NDTP, message []byte) (err error) {
 }
 
 func parseGenControl(packetData *NDTP, message []byte) {
-	if PacketType(packetData) == NphSgsConnRequest {
+	if packetData.PacketType() == NphSgsConnRequest {
 		packetData.Nph.Data = binary.LittleEndian.Uint32(message[6:10])
 	}
 	return
 }
 
 func parseExtDevice(packetData *NDTP, message []byte) (err error) {
-	switch PacketType(packetData) {
+	switch packetData.PacketType() {
 	case NphSedDeviceTitleData:
 		ext := new(ExtDevice)
 		ext.MesID = binary.LittleEndian.Uint16(message[:2])

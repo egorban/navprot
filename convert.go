@@ -33,7 +33,7 @@ func toEgtsPosData(ndtp NDTP, egts *EGTS) {
 	if navData.Speed > 0 {
 		subrec.Mv = 1
 	}
-	if !(PacketType(&ndtp) == NphSndHistory) {
+	if !(ndtp.PacketType() == NphSndHistory) {
 		subrec.RealTime = 1
 	}
 	if navData.Valid {
