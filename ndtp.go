@@ -55,9 +55,10 @@ type ExtDevice struct {
 var nplSignature = []byte{0x7E, 0x7E}
 
 const (
-	nplHeaderLen = 15
-	nphResult    = 0
-	nphHeaderLen = 10
+	nplHeaderLen  = 15
+	nphResult     = 0
+	nphHeaderLen  = 10
+	ndtpResultLen = nphHeaderLen + nplHeaderLen + 4
 
 	// NPH service types
 
@@ -193,8 +194,22 @@ func (packetData *NDTP) PacketType() (ptype string) {
 }
 
 // Service returns value of packet's service type.
-func Service(ndtp *NDTP) int {
-	return int(ndtp.Nph.ServiceID)
+func (packetData *NDTP) Service() int {
+	return int(packetData.Nph.ServiceID)
+}
+
+// Reply creates NPH_RESULT packet for packetData.Packet
+func (packetData *NDTP) Reply(result uint32) []byte {
+	reply := make([]byte, ndtpResultLen)
+	reply = append(reply, packetData.Packet[:nplHeaderLen + nphHeaderLen]...)
+	for i := nplHeaderLen + 2; i < nplHeaderLen + 6; i++ {
+		reply[i] = 0
+	}
+	binary.LittleEndian.PutUint32(reply[nplHeaderLen + nphHeaderLen:], result)
+	binary.LittleEndian.PutUint16(reply[2:], uint16(ndtpResultLen- nplHeaderLen))
+	crc:= crc16(reply[nplHeaderLen:])
+	binary.BigEndian.PutUint16(reply[6:], crc)
+	return reply
 }
 
 func parseNPH(message []byte, packetData *NDTP) (err error) {
@@ -209,7 +224,7 @@ func parseNPH(message []byte, packetData *NDTP) (err error) {
 		packetData.Nph.Data = binary.LittleEndian.Uint32(message[nphHeaderLen : nphHeaderLen+4])
 		return
 	}
-	switch Service(packetData) {
+	switch packetData.Service() {
 	case NphSrvGenericControls:
 		parseGenControl(packetData, message[nphHeaderLen:])
 	case NphSrvNavdata:
