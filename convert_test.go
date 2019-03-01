@@ -8,7 +8,7 @@ import (
 func TestNDTPtoEGTS(t *testing.T) {
 	data := NavData{1522961700, 37.6925783, 55.7890249, 339, 0, true, 1, 1, true}
 	nph := NphData{1, 101, true, 5291, &data}
-	npl := NplData{0x02, 0x00, 0x00}
+	npl := NplData{0x02, make([]byte, 4), 0x00}
 	ndtp := NDTP{&npl, &nph, []byte(nil)}
 	egts, err := NDTPtoEGTS(ndtp, 1)
 	if err != nil {

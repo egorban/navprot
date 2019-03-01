@@ -17,7 +17,7 @@ type NDTP struct {
 // NplData describes transport layer of NDPT protocol
 type NplData struct {
 	DataType    byte
-	PeerAddress uint32
+	PeerAddress []byte
 	ReqID       uint16
 }
 
@@ -128,6 +128,7 @@ func (packetData *NDTP) Parse(message []byte) (restBuf []byte, err error) {
 	packetData.Npl.ReqID = binary.LittleEndian.Uint16(message[index+13 : index+15])
 	err = parseNPH(message[index+nplHeaderLen:], packetData)
 	packetData.Packet = message[index:packetLen]
+	packetData.Npl.PeerAddress = packetData.Packet[index+9 : index+13]
 	restBuf = append([]byte(nil), message[packetLen:]...)
 	return
 }
@@ -149,6 +150,13 @@ func (packetData *NDTP) Print() string {
 // IsResult returns true, if packetData is a NPH_RESULT.
 func (packetData *NDTP) IsResult() bool {
 	return packetData.Nph.PacketType == 0
+}
+
+// ChangeAddress change Peer Address field of NPL layer
+func (packetData *NDTP) ChangeAddress(newAddress []byte) {
+	for i, j := 9, 0; i < 13; i, j = i+1, j+1 {
+		packetData.Packet[i] = newAddress[j]
+	}
 }
 
 // PacketType returns name of NDTP packet type.
