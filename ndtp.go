@@ -92,8 +92,6 @@ const (
 	nphSedDeviceResult    = 102
 	// NphSedDeviceResult defines NPH_SED_DEVICE_RESULT packet type
 	NphSedDeviceResult = "NPH_SED_DEVICE_RESULT"
-	// service errors
-	nphResultServiceBusy = 103
 )
 
 // Parse NDTP packet. Parsed information is stored in variable with NDTP type.
@@ -196,6 +194,11 @@ func (packetData *NDTP) PacketType() (ptype string) {
 // Service returns value of packet's service type.
 func (packetData *NDTP) Service() int {
 	return int(packetData.Nph.ServiceID)
+}
+
+// NeedReply returns true if packet needs reply
+func (packetData *NDTP) NeedReply() (flag bool) {
+	return packetData.Nph.RequestFlag
 }
 
 // Reply creates NPH_RESULT packet for packetData.Packet
