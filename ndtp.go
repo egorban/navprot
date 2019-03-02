@@ -55,10 +55,11 @@ type ExtDevice struct {
 var nplSignature = []byte{0x7E, 0x7E}
 
 const (
-	nplHeaderLen  = 15
-	nphResult     = 0
-	nphHeaderLen  = 10
-	ndtpResultLen = nphHeaderLen + nplHeaderLen + 4
+	nplHeaderLen     = 15
+	nphResult        = 0
+	nphHeaderLen     = 10
+	ndtpResultLen    = nphHeaderLen + nplHeaderLen + 4
+	ndtpExtResultLen = nphHeaderLen + nplHeaderLen + 8
 
 	// NPH service types
 
@@ -95,8 +96,8 @@ const (
 
 	// NDTP packet fields names
 
-	NplReqID = "NplReqID"
-	NphReqID = "NphReqID"
+	NplReqID   = "NplReqID"
+	NphReqID   = "NphReqID"
 	PacketType = "PacketType"
 )
 
@@ -210,15 +211,37 @@ func (packetData *NDTP) NeedReply() (flag bool) {
 // Reply creates NPH_RESULT packet for packetData.Packet
 func (packetData *NDTP) Reply(result uint32) []byte {
 	reply := make([]byte, ndtpResultLen)
-	reply = append(reply, packetData.Packet[:nplHeaderLen + nphHeaderLen]...)
-	for i := nplHeaderLen + 2; i < nplHeaderLen + 6; i++ {
+	copy(reply, packetData.Packet[:nplHeaderLen+nphHeaderLen])
+	for i := nplHeaderLen + 2; i < nplHeaderLen+6; i++ {
 		reply[i] = 0
 	}
-	binary.LittleEndian.PutUint32(reply[nplHeaderLen + nphHeaderLen:], result)
-	binary.LittleEndian.PutUint16(reply[2:], uint16(ndtpResultLen- nplHeaderLen))
-	crc:= crc16(reply[nplHeaderLen:])
+	binary.LittleEndian.PutUint32(reply[nplHeaderLen+nphHeaderLen:], result)
+	binary.LittleEndian.PutUint16(reply[2:], uint16(ndtpResultLen-nplHeaderLen))
+	crc := crc16(reply[nplHeaderLen:])
 	binary.BigEndian.PutUint16(reply[6:], crc)
 	return reply
+}
+
+// Reply creates NPH_RESULT packet for packetData.Packet
+func (packetData *NDTP) ReplyExt(result uint32) ([]byte, error) {
+	if packetData.Service() == NphSrvExternalDevice {
+		reply := make([]byte, ndtpExtResultLen)
+		copy(reply, packetData.Packet[:nplHeaderLen+nphHeaderLen])
+		for i := nplHeaderLen + 4; i < nplHeaderLen+6; i++ {
+			reply[i] = 0
+		}
+		ext := packetData.Nph.Data.(ExtDevice)
+		binary.LittleEndian.PutUint16(reply[nplHeaderLen+nphHeaderLen:], ext.PackNum)
+		binary.LittleEndian.PutUint32(reply[nplHeaderLen+nphHeaderLen+2:], result)
+		binary.LittleEndian.PutUint16(reply[nplHeaderLen+nphHeaderLen+6:], ext.MesID)
+		binary.LittleEndian.PutUint16(reply[nplHeaderLen+2:], uint16(nphSedDeviceResult))
+		binary.LittleEndian.PutUint16(reply[2:], uint16(ndtpExtResultLen-nplHeaderLen))
+		crc := crc16(reply[nplHeaderLen:])
+		binary.BigEndian.PutUint16(reply[6:], crc)
+		return reply, nil
+	} else {
+		return nil, errors.New("incorrect packet service")
+	}
 }
 
 // ChangePacket changes values of some fields in NDTP packet
