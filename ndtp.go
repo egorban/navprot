@@ -92,6 +92,12 @@ const (
 	nphSedDeviceResult    = 102
 	// NphSedDeviceResult defines NPH_SED_DEVICE_RESULT packet type
 	NphSedDeviceResult = "NPH_SED_DEVICE_RESULT"
+
+	// NDTP packet fields names
+
+	NplReqID = "NplReqID"
+	NphReqID = "NphReqID"
+	PacketType = "PacketType"
 )
 
 // Parse NDTP packet. Parsed information is stored in variable with NDTP type.
@@ -213,6 +219,21 @@ func (packetData *NDTP) Reply(result uint32) []byte {
 	crc:= crc16(reply[nplHeaderLen:])
 	binary.BigEndian.PutUint16(reply[6:], crc)
 	return reply
+}
+
+// ChangePacket changes values of some fields in NDTP packet
+func (packetData *NDTP) ChangePacket(changes map[string]int) {
+	if nplReqID, ok := changes[NplReqID]; ok {
+		binary.LittleEndian.PutUint16(packetData.Packet[13:], uint16(nplReqID))
+	}
+	if nphReqID, ok := changes[NphReqID]; ok {
+		binary.LittleEndian.PutUint32(packetData.Packet[nplHeaderLen+6:], uint32(nphReqID))
+	}
+	if packetType, ok := changes[PacketType]; ok {
+		binary.LittleEndian.PutUint16(packetData.Packet[nplHeaderLen+2:], uint16(packetType))
+	}
+	crc := crc16(packetData.Packet[nplHeaderLen:])
+	binary.BigEndian.PutUint16(packetData.Packet[6:], crc)
 }
 
 func parseNPH(message []byte, packetData *NDTP) (err error) {
