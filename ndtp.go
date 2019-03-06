@@ -96,8 +96,11 @@ const (
 
 	// NDTP packet fields names
 
+	// NplReqID defines NPL request id field
 	NplReqID   = "NplReqID"
+	// NphReqID defines NPH request id field
 	NphReqID   = "NphReqID"
+	// PacketType defines NPH type field
 	PacketType = "PacketType"
 )
 
@@ -222,7 +225,7 @@ func (packetData *NDTP) Reply(result uint32) []byte {
 	return reply
 }
 
-// Reply creates NPH_RESULT packet for packetData.Packet
+// ReplyExt creates NPH_SED_DEVICE_RESULT  packet
 func (packetData *NDTP) ReplyExt(result uint32) ([]byte, error) {
 	if packetData.Service() == NphSrvExternalDevice {
 		reply := make([]byte, ndtpExtResultLen)
@@ -239,9 +242,9 @@ func (packetData *NDTP) ReplyExt(result uint32) ([]byte, error) {
 		crc := crc16(reply[nplHeaderLen:])
 		binary.BigEndian.PutUint16(reply[6:], crc)
 		return reply, nil
-	} else {
-		return nil, errors.New("incorrect packet service")
 	}
+		return nil, errors.New("incorrect packet service")
+
 }
 
 // ChangePacket changes values of some fields in NDTP packet
