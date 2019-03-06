@@ -121,6 +121,9 @@ func (packetData *EGTS) Form() (packet []byte, err error) {
 	binary.LittleEndian.PutUint16(header[7:9], packetData.PacketID)
 	crcPacket := crc8EGTS(header)
 	header = append(header, byte(crcPacket))
+	crcRec := make([]byte, 2)
+	binary.LittleEndian.PutUint16(crcRec, crc16EGTS(packet))
+	packet = append(packet, crcRec...)
 	packet = append(header, packet...)
 	return
 }
@@ -135,12 +138,6 @@ func (packetData *EGTS) Print() string {
 func formAppData(packetData *EGTS) (packet []byte, err error) {
 	record := packetData.Data.(*EgtsRecord)
 	packet, err = formRecord(record, packetData.ID)
-	if err != nil {
-		return
-	}
-	crcRec := make([]byte, 2)
-	binary.LittleEndian.PutUint16(crcRec[:], crc16EGTS(packet))
-	packet = append(packet, crcRec...)
 	return
 }
 
