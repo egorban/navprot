@@ -97,9 +97,9 @@ const (
 	// NDTP packet fields names
 
 	// NplReqID defines NPL request id field
-	NplReqID   = "NplReqID"
+	NplReqID = "NplReqID"
 	// NphReqID defines NPH request id field
-	NphReqID   = "NphReqID"
+	NphReqID = "NphReqID"
 	// PacketType defines NPH type field
 	PacketType = "PacketType"
 )
@@ -243,7 +243,7 @@ func (packetData *NDTP) ReplyExt(result uint32) ([]byte, error) {
 		binary.BigEndian.PutUint16(reply[6:], crc)
 		return reply, nil
 	}
-		return nil, errors.New("incorrect packet service")
+	return nil, errors.New("incorrect packet service")
 
 }
 
