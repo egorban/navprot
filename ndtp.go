@@ -171,7 +171,7 @@ func (packetData *NDTP) ChangeAddress(newAddress []byte) {
 // GetID returns ID of terminal, which is included only in NPH_SGC_CONN_REQUEST packets
 func (packetData *NDTP) GetID() (id int, err error) {
 	if packetData.PacketType() == NphSgsConnRequest {
-		id = packetData.Nph.Data.(int)
+		id = int(packetData.Nph.Data.(uint32))
 	} else {
 		err = errors.New("incorrect packet type")
 	}
