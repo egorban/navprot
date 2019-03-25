@@ -149,11 +149,10 @@ func (packetData *NDTP) Form() []byte {
 }
 
 // Print generate string with information about NDTP packet in readable format.
-func (packetData *NDTP) Print() string {
+func (packetData NDTP) String() string {
 	sNPL := printNPL(packetData.Npl)
 	sNPH := printNPH(packetData.Nph)
-	sPack := fmt.Sprintf("packet: %v\n", packetData.Packet)
-	return sNPL + sNPH + sPack
+	return sNPL + sNPH
 }
 
 // IsResult returns true, if packetData is a NPH_RESULT.
@@ -345,30 +344,31 @@ func parseExtDevice(packetData *NDTP, message []byte) (err error) {
 }
 
 func printNPL(npl *NplData) string {
-	return fmt.Sprintf("dataType: %d; peerAddress: %d; reqID: %d\n", npl.DataType, npl.PeerAddress, npl.ReqID)
+	//return fmt.Sprintf("dataType: %d; peerAddress: %d; reqID: %d\n", npl.DataType, npl.PeerAddress, npl.ReqID)
+	return fmt.Sprintf("NPL: %+v;", *npl)
 }
 
 func printNPH(nph *NphData) string {
-	sNPH := fmt.Sprintf("serviceID: %d; packetType: %d; requestFlag: %t; reqID: %d\n", nph.ServiceID, nph.PacketType, nph.RequestFlag, nph.ReqID)
+	sNPH := fmt.Sprintf(" NPH: %+v;", *nph)
 	sData := printData(nph.Data)
 	return sNPH + sData
 }
 
 func printData(data interface{}) (sdata string) {
+	prefix := " Data: "
 	switch data.(type) {
 	case nil:
-		sdata = "data: nil\n"
+		sdata = "nil"
 	case int:
-		sdata = fmt.Sprintf("data: %d\n", data)
+		sdata = fmt.Sprintf("%d", data)
 	case *ExtDevice:
 		ext := data.(*ExtDevice)
-		sdata = fmt.Sprintf("mesID: %d; packNum: %d; res: %d\n", ext.MesID, ext.PackNum, ext.Res)
+		sdata = fmt.Sprintf("%+v", *ext)
 	case *NavData:
 		nav := data.(*NavData)
-		sdata += fmt.Sprintf("time: %d; lon: %f; lat: %f; bear: %d; speed: %d;\n", nav.Time, nav.Lon, nav.Lat, nav.Bearing, nav.Speed)
-		sdata += fmt.Sprintf("sos: %t; lohs: %d; lahs: %d; valid: %t;\n", nav.Sos, nav.Lohs, nav.Lahs, nav.Valid)
+		sdata = fmt.Sprintf("%+v", *nav)
 	}
-	return
+	return prefix + sdata
 }
 
 func crc16(bs []byte) (crc uint16) {

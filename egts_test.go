@@ -1,23 +1,25 @@
 package navprot
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 )
 
 func TestEGTS_Parse(t *testing.T) {
-	packet := []byte{1, 0, 3, 11, 0, 16, 0, 6, 0, 0, 22, 6, 0, 0, 6, 0, 6, 0, 24, 2, 2, 0, 3, 0, 6, 0, 0, 24, 29}
+	packet := []byte{1, 0, 3, 11, 0, 16, 0, 6, 0, 0, 22, 6, 0, 0, 6, 0, 6, 0, 24, 2, 2, 0, 3, 0, 6, 0, 0, 24, 29, 1, 2, 3}
 	data := EgtsResponce{6, 0}
 	egtsExpected := EGTS{0, 0, 0, &data}
 	var egts EGTS
-	_, err := egts.Parse(packet)
+	restBuf, err := egts.Parse(packet)
+	fmt.Println(restBuf)
 	if err != nil {
 		t.Error(err)
 		return
 	}
 	if !reflect.DeepEqual(egtsExpected, egts) {
-		t.Error("\nexpected: ", egtsExpected.Print(), "\n",
-			"got:      ", egts.Print())
+		t.Error("\nexpected: ", egtsExpected, "\n",
+			"got:      ", egts)
 	}
 }
 

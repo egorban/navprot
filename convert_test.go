@@ -19,7 +19,7 @@ func TestNDTPtoEGTS(t *testing.T) {
 	rec := EgtsRecord{0, egtsTeledataService, egtsSrPosData, &subrec}
 	egtsExpected := EGTS{egtsPtAppdata, 0, 1, &rec}
 	if !reflect.DeepEqual(egtsExpected, *egts) {
-		t.Error("\nexpected: ", egtsExpected.Print(), "\n",
-			"got:     ", egts.Print())
+		t.Error("\nexpected: ", egtsExpected, "\n",
+			"got:     ", egts)
 	}
 }

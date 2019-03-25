@@ -129,8 +129,8 @@ func (packetData *EGTS) Form() (packet []byte, err error) {
 }
 
 // Print generate string with information about EGTS packet in readable format.
-func (packetData *EGTS) Print() string {
-	h := fmt.Sprintf("packetType: %d; packetID: %d; id: %d\n", packetData.PacketType, packetData.PacketID, packetData.ID)
+func (packetData EGTS) String() string {
+	h := fmt.Sprintf("Header: {PacketType:%d; PacketID:%d; ID:%d}; ", packetData.PacketType, packetData.PacketID, packetData.ID)
 	b := printBody(packetData.Data)
 	return h + b
 }
@@ -194,36 +194,36 @@ func parseResponce(packetData *EGTS, body []byte) {
 }
 
 func printBody(data interface{}) (body string) {
+	prefix := "Body: "
 	switch data.(type) {
 	case nil:
-		body = "body: nil\n"
+		body = "nil"
 	case *EgtsResponce:
 		body = printEgtsResponce(data.(*EgtsResponce))
 	case *EgtsRecord:
 		body = printEgtsRecord(data.(*EgtsRecord))
 	}
-	return
+	return prefix + body
 }
 
 func printEgtsResponce(body *EgtsResponce) string {
-	return fmt.Sprintf("recID: %d; procRec: %d\n", body.RecID, body.ProcRes)
+	return fmt.Sprintf("%+v", *body)
 }
 
 func printEgtsRecord(body *EgtsRecord) (sub string) {
-	rec := fmt.Sprintf("recNum: %d, service: %d; subType: %d\n", body.RecNum, body.Service, body.SubType)
+	rec := fmt.Sprintf("%+v; ", *body)
+	prefix := "Subrec: "
 	switch body.Sub.(type) {
 	case nil:
-		sub = "subrecord: nil\n"
+		sub = "nil"
 	case *PosData:
 		sub = printPosData(body.Sub.(*PosData))
 	}
-	return rec + sub
+	return rec + prefix + sub
 }
 
 func printPosData(sub *PosData) string {
-	s := fmt.Sprintf("time: %d; lon: %f; lat: %f; bear: %d; speed: %d;\n", sub.Time, sub.Lon, sub.Lat, sub.Bearing, sub.Speed)
-	s += fmt.Sprintf("lohs: %d; lahs: %d; mv : %d; realTime: %d; valid: %d, source: %d", sub.Lohs, sub.Lahs, sub.Mv, sub.RealTime, sub.Valid, sub.Source)
-	return s
+	return fmt.Sprintf("%+v", *sub)
 }
 
 func crc8EGTS(bs []byte) (crc uint) {

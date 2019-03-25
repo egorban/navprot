@@ -29,8 +29,8 @@ func TestNDTP_Parse(t *testing.T) {
 			}
 			if !reflect.DeepEqual(ndtp, tt.wantNDTP) {
 				t.Error("For external device packet\n",
-					"got:      ", ndtp.Print(),
-					"\nexpected: ", tt.wantNDTP.Print())
+					"got:      ", ndtp,
+					"\nexpected: ", tt.wantNDTP)
 			}
 		})
 	}
