@@ -97,6 +97,8 @@ func (packetData *EGTS) Parse(message []byte) (restBuf []byte, err error) {
 	switch packetData.PacketType {
 	case egtsPtResponse:
 		parseResponce(packetData, body)
+	case egtsPtAppdata:
+		parseAppdata(packetData, body)
 	default:
 		err = fmt.Errorf("packet type %d not implemented", packetData.PacketType)
 	}
@@ -191,6 +193,52 @@ func parseResponce(packetData *EGTS, body []byte) {
 	recp.RecID = binary.LittleEndian.Uint16(body[:2])
 	recp.ProcRes = body[2]
 	packetData.Data = recp
+}
+
+func parseAppdata(packetData *EGTS, body []byte) {
+	record := new(EgtsRecord)
+	dataLen := binary.LittleEndian.Uint16(body[:2])
+	record.RecNum = binary.LittleEndian.Uint16(body[2:4])
+	tmfe := body[4] >> 2 & 4
+	evfe := body[4] >> 1 & 2
+	obfe := body[4] & 1
+	if obfe != 0 {
+		packetData.ID = binary.LittleEndian.Uint32(body[5:9])
+	}
+	optLen := (tmfe + evfe + obfe) * 4
+	record.Service = body[5+optLen]
+	sub := body[7+optLen : 7+int(optLen)+int(dataLen)]
+	packetData.Data = parseSub(record, sub)
+
+}
+
+func parseSub(record *EgtsRecord, sub []byte) *EgtsRecord {
+	record.SubType = sub[0]
+	srl := binary.LittleEndian.Uint16(sub[1:3])
+	if record.Service == egtsTeledataService && record.SubType == egtsSrPosData {
+		record.Sub = parseSrPosData(sub[3 : 3+srl])
+	}
+	return record
+}
+
+func parseSrPosData(sub []byte) *PosData {
+	data := new(PosData)
+	lahs := sub[12] >> 5 & 1
+	lohs := sub[12] >> 6 & 1
+	if sub[12]&1 != 0 {
+		data.Valid = 1
+	}
+	data.Time = binary.LittleEndian.Uint32(sub[:4])
+	data.Lat = float64(binary.LittleEndian.Uint32(sub[4:8])) * 90 / 0xffffffff * (1 - 2*float64(lahs))
+	data.Lon = float64(binary.LittleEndian.Uint32(sub[8:12])) * 180 / 0xffffffff * (1 - 2*float64(lohs))
+	spdHi := sub[14] & 63
+	spdLo := sub[13]
+	data.Speed = uint16(spdHi)*256 + uint16(spdLo)
+	dirHi := sub[14] >> 7
+	dirLo := sub[15]
+	data.Bearing = uint16(dirHi)*256 + uint16(dirLo)
+	data.Source = sub[20]
+	return data
 }
 
 func printBody(data interface{}) (body string) {
