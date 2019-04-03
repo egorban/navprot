@@ -19,18 +19,16 @@ func TestNDTP_Parse(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ndtp := new(NDTP)
-			gotRestBuf, err := ndtp.Parse(tt.message)
+			restBuf, err := ndtp.Parse(tt.message)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NDTP.Parse() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(gotRestBuf, tt.wantRestBuf) {
-				t.Errorf("NDTP.Parse() = %v, want %v", gotRestBuf, tt.wantRestBuf)
+			if !reflect.DeepEqual(restBuf, tt.wantRestBuf) {
+				t.Errorf("NDTP.Parse() = %v, want %v", restBuf, tt.wantRestBuf)
 			}
 			if !reflect.DeepEqual(ndtp, tt.wantNDTP) {
-				t.Error("For external device packet\n",
-					"got:      ", ndtp,
-					"\nexpected: ", tt.wantNDTP)
+				t.Error("got:      ", ndtp, "\nexpected: ", tt.wantNDTP)
 			}
 		})
 	}
