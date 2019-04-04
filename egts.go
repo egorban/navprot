@@ -61,6 +61,24 @@ type PosData struct {
 
 // Parse EGTS packet. Parsed information is stored in variable with EGTS type.
 func (packetData *EGTS) Parse(message []byte) (restBuf []byte, err error) {
+	body, restBuf, packetType, err := egtsBody(message)
+	if err != nil {
+		return
+	}
+	packetData.PacketType = packetType
+	switch packetData.PacketType {
+	case egtsPtResponse:
+		parseResponce(packetData, body)
+	case egtsPtAppdata:
+		parseAppdata(packetData, body)
+	default:
+		err = fmt.Errorf("packet type %d not implemented", packetData.PacketType)
+		return
+	}
+	return
+}
+
+func egtsBody(message []byte) (body, restBuf []byte, packetType byte, err error) {
 	index := bytes.IndexByte(message, prvSignature)
 	if index == -1 {
 		err = errors.New("prvSignature signature not found")
@@ -73,6 +91,15 @@ func (packetData *EGTS) Parse(message []byte) (restBuf []byte, err error) {
 		return
 	}
 	headerLen := int(message[index+3])
+	if messageLen < headerLen {
+		restBuf = append([]byte(nil), message...)
+		err = errors.New("message is too short")
+		return
+	}
+	if headerLen < minEgtsHeaderLen {
+		err = errors.New("headerLen is too short")
+		return
+	}
 	header := message[index : index+headerLen]
 	headerCrc := header[headerLen-1]
 	headerCrcCalc := crc8EGTS(header[:headerLen-1])
@@ -86,23 +113,14 @@ func (packetData *EGTS) Parse(message []byte) (restBuf []byte, err error) {
 		err = errors.New("message is too short")
 		return
 	}
-	body := message[startBody : startBody+bodyLen]
+	body = message[startBody : startBody+bodyLen]
 	bodyCrc := binary.LittleEndian.Uint16(message[startBody+bodyLen : startBody+bodyLen+2])
 	bodyCrcCalc := crc16EGTS(body)
 	if bodyCrc != bodyCrcCalc {
-		err = errors.New("incorrect body crc")
-		return
+		err = errors.New("incorrect egtsBody crc")
 	}
-	packetData.PacketType = message[index+9]
-	switch packetData.PacketType {
-	case egtsPtResponse:
-		parseResponce(packetData, body)
-	case egtsPtAppdata:
-		parseAppdata(packetData, body)
-	default:
-		err = fmt.Errorf("packet type %d not implemented", packetData.PacketType)
-	}
-	restBuf = message[index+headerLen+bodyLen+2:]
+	packetType = message[index+9]
+	restBuf = append([]byte(nil), message[index+headerLen+bodyLen+2:]...)
 	return
 }
 
@@ -244,12 +262,12 @@ func parseSrPosData(sub []byte) *PosData {
 func printBody(data interface{}) (body string) {
 	prefix := "Body: "
 	switch data.(type) {
-	case nil:
-		body = "nil"
 	case *EgtsResponce:
 		body = printEgtsResponce(data.(*EgtsResponce))
 	case *EgtsRecord:
 		body = printEgtsRecord(data.(*EgtsRecord))
+	default:
+		body = fmt.Sprintf("%v", data)
 	}
 	return prefix + body
 }
@@ -262,10 +280,10 @@ func printEgtsRecord(body *EgtsRecord) (sub string) {
 	rec := fmt.Sprintf("%+v; ", *body)
 	prefix := "Subrec: "
 	switch body.Sub.(type) {
-	case nil:
-		sub = "nil"
 	case *PosData:
 		sub = printPosData(body.Sub.(*PosData))
+	default:
+		sub = fmt.Sprintf("%v", body.Sub)
 	}
 	return rec + prefix + sub
 }
