@@ -1,3 +1,4 @@
+![Go Report Card](https://goreportcard.com/badge/github.com/ashirko/navprot)
 
 Package navprot provides functions for working with different navigation protocols.
 
