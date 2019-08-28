@@ -1,5 +1,5 @@
 /*
-Package NDTP provides functions for parsing and forming NDTP packets.
+Package ndtp	 provides functions for parsing and forming NDTP packets.
 */
 package ndtp
 
