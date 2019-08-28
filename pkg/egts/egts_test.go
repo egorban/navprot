@@ -1,4 +1,4 @@
-package navprot
+package egts
 
 import (
 	"reflect"
@@ -8,9 +8,29 @@ import (
 func TestEGTS_Form(t *testing.T) {
 	packetExpected := []byte{1, 0, 0, 11, 0, 35, 0, 0, 0, 1, 153, 24, 0, 0, 0, 1, 239, 0, 0, 0, 2, 2,
 		16, 21, 0, 210, 49, 43, 16, 79, 186, 58, 158, 210, 39, 188, 53, 3, 0, 0, 178, 0, 0, 0, 0, 0, 106, 141}
-	subrec := &PosData{1533570258 - timestamp20100101utc, 37.782409656276556, 55.62752532903746, 178, 0, 0, 0, 0, 0, 1, 0}
-	rec := &EgtsRecord{0, egtsTeledataService, egtsSrPosData, subrec}
-	egts := EGTS{egtsPtAppdata, 0, 239, rec}
+	posData := &PosData{
+		Time:    1533570258 - Timestamp20100101utc,
+		Lon:     37.782409656276556,
+		Lat:     55.62752532903746,
+		Bearing: 178,
+		Valid:   1,
+	}
+	subrec := &SubRecord{
+		Type: EgtsSrPosData,
+		Data: posData,
+	}
+	rec := &Record{
+		RecNum:  0,
+		ID:      239,
+		Service: EgtsTeledataService,
+		Data:    []*SubRecord{subrec},
+	}
+	egts := Packet{
+		Type:    EgtsPtAppdata,
+		ID:      0,
+		Records: []*Record{rec},
+		Data:    nil,
+	}
 	packet, err := egts.Form()
 	if err != nil {
 		t.Error(err)
@@ -27,28 +47,28 @@ func TestEGTS_Parse(t *testing.T) {
 		name        string
 		message     []byte
 		wantRestBuf []byte
-		wantEgts    *EGTS
+		wantEgts    *Packet
 		wantErr     bool
 	}{
 		{"result", packetResult(), []byte{1, 2, 3}, egtsRes(), false},
 		{"posData", packetPosData(), nil, egtsPosData(), false},
-		{"signatureNotFound", egtsWithoutSignature(), nil, new(EGTS), true},
-		{"shortVeryPacket", egtsVeryShort(), egtsVeryShort(), new(EGTS), true},
-		{"shortHeader", egtsShortHeader(), nil, new(EGTS), true},
-		{"shortBody", egtsShortBody(), nil, new(EGTS), true},
-		{"incorrectHeaderCrc", egtsIncorrectHeaderCrc(), nil, new(EGTS), true},
-		{"incorrectBodyCrc", egtsIncorrectBodyCrc(), nil, new(EGTS), true},
+		{"signatureNotFound", egtsWithoutSignature(), nil, new(Packet), true},
+		{"shortVeryPacket", egtsVeryShort(), egtsVeryShort(), new(Packet), true},
+		{"shortHeader", egtsShortHeader(), nil, new(Packet), true},
+		{"shortBody", egtsShortBody(), nil, new(Packet), true},
+		{"incorrectHeaderCrc", egtsIncorrectHeaderCrc(), nil, new(Packet), true},
+		{"incorrectBodyCrc", egtsIncorrectBodyCrc(), nil, new(Packet), true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			egts := new(EGTS)
+			egts := new(Packet)
 			restBuf, err := egts.Parse(tt.message)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("EGTS.Parse() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("EGTS.parse() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(restBuf, tt.wantRestBuf) {
-				t.Errorf("EGTS.Parse() = %v, want %v", restBuf, tt.wantRestBuf)
+				t.Errorf("EGTS.parse() = %v, want %v", restBuf, tt.wantRestBuf)
 			}
 			if !reflect.DeepEqual(tt.wantEgts, egts) {
 				t.Error("got:      ", egts, "\nexpected: ", tt.wantEgts)
@@ -94,13 +114,55 @@ func egtsShortHeader() []byte {
 		16, 21, 0, 210, 49, 43, 16, 79, 186, 58, 158, 210, 39, 188, 53, 3, 0, 0, 178, 0, 0, 0, 0, 0, 106, 141}
 }
 
-func egtsRes() *EGTS {
-	data := EgtsResponce{RecID: 6}
-	return &EGTS{Data: &data}
+func egtsRes() *Packet {
+	data := Response{
+		RPID:    6,
+		ProcRes: 0,
+	}
+	subData := Confirmation{
+		CRN: 6,
+		RST: 0,
+	}
+	sub := SubRecord{
+		Type: 0,
+		Data: &subData,
+	}
+	rec := Record{
+		RecNum:  6,
+		ID:      0,
+		Service: 2,
+		Data:    []*SubRecord{&sub},
+	}
+	return &Packet{
+		Type:    0,
+		ID:      0,
+		Records: []*Record{&rec},
+		Data:    &data,
+	}
 }
 
-func egtsPosData() *EGTS {
-	subrec := &PosData{Time: 1533570258 - timestamp20100101utc, Lon: 37.782409656276556, Lat: 55.62752532903746, Bearing: 178, Valid: 1}
-	rec := &EgtsRecord{Service: egtsTeledataService, SubType: egtsSrPosData, Sub: subrec}
-	return &EGTS{PacketType: egtsPtAppdata, ID: 239, Data: rec}
+func egtsPosData() *Packet {
+	data := PosData{
+		Time:    1533570258 - Timestamp20100101utc,
+		Lon:     37.782409656276556,
+		Lat:     55.62752532903746,
+		Bearing: 178,
+		Valid:   1,
+	}
+	sub := SubRecord{
+		Type: EgtsSrPosData,
+		Data: &data,
+	}
+	rec := Record{
+		RecNum:  0,
+		ID:      239,
+		Service: EgtsTeledataService,
+		Data:    []*SubRecord{&sub},
+	}
+	return &Packet{
+		Type:    EgtsPtAppdata,
+		ID:      0,
+		Records: []*Record{&rec},
+		Data:    nil,
+	}
 }

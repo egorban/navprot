@@ -9,4 +9,6 @@ Provided functionality includes:
 
 3)Printing packet information in readable format
 
+4)Convertation between different navigation protocols
+
 Currently EGTS (ERA GLONASS Telematics Standard) and NDTP (Navigation Data Transfer Protocol) are supported.
