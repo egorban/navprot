@@ -37,6 +37,7 @@ type PosData struct {
 	Source   byte
 }
 
+// FuelData contains information about fuel level
 type FuelData struct {
 	Type byte
 	Fuel uint32
