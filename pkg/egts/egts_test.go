@@ -5,43 +5,6 @@ import (
 	"testing"
 )
 
-func TestEGTS_Form(t *testing.T) {
-	packetExpected := []byte{1, 0, 0, 11, 0, 35, 0, 0, 0, 1, 153, 24, 0, 0, 0, 1, 239, 0, 0, 0, 2, 2,
-		16, 21, 0, 210, 49, 43, 16, 79, 186, 58, 158, 210, 39, 188, 53, 3, 0, 0, 178, 0, 0, 0, 0, 0, 106, 141}
-	posData := &PosData{
-		Time:    1533570258 - Timestamp20100101utc,
-		Lon:     37.782409656276556,
-		Lat:     55.62752532903746,
-		Bearing: 178,
-		Valid:   1,
-	}
-	subrec := &SubRecord{
-		Type: EgtsSrPosData,
-		Data: posData,
-	}
-	rec := &Record{
-		RecNum:  0,
-		ID:      239,
-		Service: EgtsTeledataService,
-		Data:    []*SubRecord{subrec},
-	}
-	egts := Packet{
-		Type:    EgtsPtAppdata,
-		ID:      0,
-		Records: []*Record{rec},
-		Data:    nil,
-	}
-	packet, err := egts.Form()
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	if !reflect.DeepEqual(packetExpected, packet) {
-		t.Error("\nexpected: ", packetExpected, "\n",
-			"\ngot:      ", packet)
-	}
-}
-
 func TestEGTS_Parse(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -165,4 +128,58 @@ func egtsPosData() *Packet {
 		Records: []*Record{&rec},
 		Data:    nil,
 	}
+}
+
+func TestPacket_Form(t *testing.T) {
+	tests := []struct {
+		name       string
+		packetData *Packet
+		wantData   []byte
+		wantErr    bool
+	}{
+		{name: "navData", packetData: navPacket(), wantData: wantNavData(), wantErr: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotData, err := tt.packetData.Form()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Form() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(gotData, tt.wantData) {
+				t.Errorf("Form() gotData = %v, want %v", gotData, tt.wantData)
+			}
+		})
+	}
+}
+
+func navPacket() *Packet {
+	posData := &PosData{
+		Time:    1533570258 - Timestamp20100101utc,
+		Lon:     37.782409656276556,
+		Lat:     55.62752532903746,
+		Bearing: 178,
+		Valid:   1,
+	}
+	subrec := &SubRecord{
+		Type: EgtsSrPosData,
+		Data: posData,
+	}
+	rec := &Record{
+		RecNum:  0,
+		ID:      239,
+		Service: EgtsTeledataService,
+		Data:    []*SubRecord{subrec},
+	}
+	return &Packet{
+		Type:    EgtsPtAppdata,
+		ID:      0,
+		Records: []*Record{rec},
+		Data:    nil,
+	}
+}
+
+func wantNavData() []byte {
+	return []byte{1, 0, 0, 11, 0, 35, 0, 0, 0, 1, 153, 24, 0, 0, 0, 1, 239, 0, 0, 0, 2, 2,
+		16, 21, 0, 210, 49, 43, 16, 79, 186, 58, 158, 210, 39, 188, 53, 3, 0, 0, 178, 0, 0, 0, 0, 0, 106, 141}
 }
