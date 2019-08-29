@@ -20,6 +20,12 @@ type NavData struct {
 	Valid bool
 }
 
+// FuelData contains information about fuel level
+type FuelData struct {
+	Type byte
+	Fuel uint16
+}
+
 func (data *NavData) parse(message []byte) {
 	data.Time = binary.LittleEndian.Uint32(message[2:6])
 	lon := binary.LittleEndian.Uint32(message[6:10])
