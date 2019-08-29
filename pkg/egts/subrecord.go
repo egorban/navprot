@@ -37,6 +37,11 @@ type PosData struct {
 	Source   byte
 }
 
+type FuelData struct {
+	Type byte
+	Fuel uint32
+}
+
 func (subData *SubRecord) parse(service byte, buff []byte) []byte {
 	subData.Type = buff[0]
 	srl := binary.LittleEndian.Uint16(buff[1:3])
