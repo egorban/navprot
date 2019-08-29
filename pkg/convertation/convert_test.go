@@ -32,7 +32,7 @@ func ndtpNavPacket() *ndtp.Packet {
 		Lahs:    1,
 		Valid:   true,
 	}
-	nph := ndtp.NphData{
+	nph := ndtp.Nph{
 		ServiceID:   1,
 		PacketType:  101,
 		RequestFlag: true,

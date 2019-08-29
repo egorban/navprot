@@ -13,7 +13,7 @@ import (
 // Packet contains information about about NDTP (Navigation Data Transfer Protocol) packet
 type Packet struct {
 	Npl    *NplData
-	Nph    *NphData
+	Nph    *Nph
 	Packet []byte
 }
 
@@ -74,7 +74,7 @@ func (packetData *Packet) Parse(message []byte) (restBuf []byte, err error) {
 	if err != nil {
 		return
 	}
-	packetData.Nph = new(NphData)
+	packetData.Nph = new(Nph)
 	err = packetData.Nph.parse(packetData.Packet[nplHeaderLen:])
 	return
 }
@@ -83,7 +83,7 @@ func (packetData *Packet) Parse(message []byte) (restBuf []byte, err error) {
 func (packetData Packet) String() string {
 	sNPL := packetData.Npl.String()
 	sNPH := packetData.Nph.String()
-	packet := fmt.Sprintf("; %v", packetData.Packet)
+	packet := fmt.Sprintf("; Packet: %v", packetData.Packet)
 	return sNPL + sNPH + packet
 }
 

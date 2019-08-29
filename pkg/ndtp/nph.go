@@ -8,8 +8,8 @@ import (
 
 var nplSignature = []byte{0x7E, 0x7E}
 
-// NphData describes session layer of NDTP protocol
-type NphData struct {
+// Nph describes session layer of NDTP protocol
+type Nph struct {
 	ServiceID   uint16
 	PacketType  uint16
 	RequestFlag bool
@@ -17,27 +17,28 @@ type NphData struct {
 	Data        interface{}
 }
 
-func (nph *NphData) String() string {
+func (nph *Nph) String() string {
 	if nph == nil {
 		return "NPH: nil;"
 	}
-	sNPH := fmt.Sprintf(" NPH: %+v;", *nph)
+	//sNPH := fmt.Sprintf(" NPH: %+v;", *nph)
+	sNPH := fmt.Sprintf(" NPH: {ServiceID:%d, PacketType:%d, RequestFlag:%t, ReqID:%d};", nph.ServiceID, nph.PacketType, nph.RequestFlag, nph.ReqID)
 	sData := sData(nph.Data)
 	return sNPH + sData
 }
 
 // IsResult returns true, if packetData is a NPH_RESULT.
-func (nph *NphData) isResult() bool {
+func (nph *Nph) isResult() bool {
 	return nph.PacketType == 0
 }
 
 // Service returns value of packet's service type.
-func (nph *NphData) service() int {
+func (nph *Nph) service() int {
 	return int(nph.ServiceID)
 }
 
 // PacketType returns name of NDTP packet type.
-func (nph *NphData) packetType() (ptype string) {
+func (nph *Nph) packetType() (ptype string) {
 	switch nph.ServiceID {
 	case NphSrvGenericControls:
 		if nph.PacketType == nphSgcConnRequest {
@@ -59,7 +60,7 @@ func (nph *NphData) packetType() (ptype string) {
 	return
 }
 
-func (nph *NphData) parse(message []byte) (err error) {
+func (nph *Nph) parse(message []byte) (err error) {
 	nph.ServiceID = binary.LittleEndian.Uint16(message[:2])
 	nph.PacketType = binary.LittleEndian.Uint16(message[2:4])
 	if binary.LittleEndian.Uint16(message[4:6]) == 1 {
@@ -83,9 +84,9 @@ func (nph *NphData) parse(message []byte) (err error) {
 	return
 }
 
-func (nph *NphData) parseNavData(message []byte) (err error) {
+func (nph *Nph) parseNavData(message []byte) (err error) {
 	cellStart := 0
-	allData := make([]*NavData, 0, 1)
+	allData := make([]interface{}, 0, 1)
 	for message[cellStart] == 0 {
 		if len(message[cellStart:]) >= navDataCellLen {
 			data := new(NavData)
@@ -101,14 +102,32 @@ func (nph *NphData) parseNavData(message []byte) (err error) {
 	return
 }
 
-func (nph *NphData) parseGenControl(message []byte) {
+//func (nph *Nph) parseNavData(message []byte) (err error) {
+//	cellStart := 0
+//	allData := make([]*NavData, 0, 1)
+//	for message[cellStart] == 0 {
+//		if len(message[cellStart:]) >= navDataCellLen {
+//			data := new(NavData)
+//			data.parse(message[cellStart:])
+//			allData = append(allData, data)
+//			cellStart = cellStart + navDataCellLen
+//		} else {
+//			err = errors.New("NavData type 0 is too short")
+//			return
+//		}
+//	}
+//	nph.Data = allData
+//	return
+//}
+
+func (nph *Nph) parseGenControl(message []byte) {
 	if nph.packetType() == NphSgsConnRequest {
 		nph.Data = binary.LittleEndian.Uint32(message[6:10])
 	}
 	return
 }
 
-func (nph *NphData) parseExtDevice(message []byte) (err error) {
+func (nph *Nph) parseExtDevice(message []byte) (err error) {
 	ext := new(ExtDevice)
 	err = ext.parse(nph.packetType(), message)
 	if err == nil {
@@ -125,10 +144,11 @@ func sData(data interface{}) (sdata string) {
 	case *ExtDevice:
 		ext := data.(*ExtDevice)
 		sdata = fmt.Sprintf("%+v", *ext)
-	case []*NavData:
+	case []interface{}:
 		tmp := "["
-		for _, e := range data.([]*NavData) {
-			tmp = tmp + fmt.Sprintf(" %+v", *e)
+		//for _, e := range data.([]*NavData) {
+		for _, e := range data.([]interface{}) {
+			tmp = tmp + fmt.Sprintf(" %+v", e)
 		}
 		sdata = sdata + tmp + " ]"
 	default:
