@@ -2,80 +2,46 @@ package convertation
 
 import (
 	"github.com/ashirko/navprot/pkg/egts"
-	"github.com/ashirko/navprot/pkg/ndtp"
+	"github.com/ashirko/navprot/pkg/general"
 	"reflect"
 	"testing"
 )
 
-func TestNDTPtoEGTS(t *testing.T) {
-	ndtpPacket := ndtpNavPacket()
-	egtsPacket, err := ToEGTS(ndtpPacket, 0, 0, 0)
-	if err != nil {
-		t.Error(err)
-		return
+type args struct {
+	packet general.NavProtocol
+	id     uint32
+	packID uint16
+	recID  uint16
+}
+
+func TestToEGTS(t *testing.T) {
+
+	tests := []struct {
+		name    string
+		args    args
+		want    *egts.Packet
+		wantErr bool
+	}{
+		//{name: "navdata", args: navArgs(), want: navEgtsWant(), wantErr: false},
 	}
-	egtsExpected := egtsNavPacket()
-	if !reflect.DeepEqual(egtsExpected, egtsPacket) {
-		t.Error("\nexpected: ", egtsExpected, "\n",
-			"got:     ", egtsPacket)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ToEGTS(tt.args.packet, tt.args.id, tt.args.packID, tt.args.recID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ToEGTS() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ToEGTS() got = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
 
-func ndtpNavPacket() *ndtp.Packet {
-	data := ndtp.NavData{
-		Time:    1522961700,
-		Lon:     37.6925783,
-		Lat:     55.7890249,
-		Bearing: 339,
-		Sos:     true,
-		Lohs:    1,
-		Lahs:    1,
-		Valid:   true,
-	}
-	nph := ndtp.Nph{
-		ServiceID:   1,
-		PacketType:  101,
-		RequestFlag: true,
-		ReqID:       5291,
-		Data:        []*ndtp.NavData{&data},
-	}
-	npl := ndtp.NplData{
-		DataType:    2,
-		PeerAddress: make([]byte, 4),
-		ReqID:       0,
-	}
-	return &ndtp.Packet{
-		Npl:    &npl,
-		Nph:    &nph,
-		Packet: []byte(nil),
-	}
+func navEgtsWant() *egts.Packet {
+	panic("implement me")
 }
 
-func egtsNavPacket() *egts.Packet {
-	posData := egts.PosData{
-		Time:     260657700,
-		Lon:      37.6925783,
-		Lat:      55.7890249,
-		Bearing:  339,
-		RealTime: 1,
-		Valid:    1,
-		Source:   13,
-	}
-	subrec := egts.SubRecord{
-		Type: egts.EgtsSrPosData,
-		Data: &posData,
-	}
-	rec := egts.Record{
-		RecNum:  0,
-		ID:      0,
-		Service: egts.EgtsTeledataService,
-		Data:    []*egts.SubRecord{&subrec},
-	}
-	//return egts.Packet{egts.EgtsPtAppdata, 0, 1, &rec}
-	return &egts.Packet{
-		Type:    egts.EgtsPtAppdata,
-		ID:      0,
-		Records: []*egts.Record{&rec},
-		Data:    nil,
-	}
+func navArgs() args {
+	panic("implement me")
 }

@@ -42,7 +42,7 @@ func (data *NavData) parse(message []byte) {
 	data.Bearing = binary.LittleEndian.Uint16(message[20:22])
 }
 
-func (data *NavData) toGeneral() *general.NavData {
+func (data *NavData) toGeneral() general.Subrecord {
 	gen := &general.NavData{
 		Time:    data.Time,
 		Lon:     data.Lon,
