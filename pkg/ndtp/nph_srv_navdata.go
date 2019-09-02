@@ -66,7 +66,7 @@ func (data *NavData) toGeneral() *general.NavData {
 func (data *FuelData) parse_UziM(message []byte) {
 	level_mm := binary.LittleEndian.Uint16(message[2:4])
 	level_l := binary.LittleEndian.Uint16(message[4:6])
-	if message[2] == 0 {
+	if message[0] == 0 {
 		if level_l > 0 {
 			data.Type = 2
 			data.Fuel = level_l
