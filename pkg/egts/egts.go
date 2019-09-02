@@ -11,10 +11,11 @@ import (
 const egtsPtResponse byte = 0
 
 const (
-	prvSignature        = 0x01
-	minEgtsHeaderLen    = 11
-	egtsRecordHeaderLen = 11
-	egtsSubrecDataLen   = 21
+	prvSignature          = 0x01
+	minEgtsHeaderLen      = 11
+	egtsRecordHeaderLen   = 11
+	egtsSubrecDataLen     = 21
+	egtsSubrecFuelDataLen = 7
 
 	// EgtsPtAppdata defines EGTS_PT_APPDATA packet type
 	EgtsPtAppdata = 1
@@ -22,6 +23,8 @@ const (
 	EgtsTeledataService = 2
 	// EgtsSrPosData defines EGTS_SR_POS_DATA subrecord
 	EgtsSrPosData = 16
+	// EgtsSrPosData defines EGTS_SR_LIQUID_LEVEL_SENSOR subrecord
+	EgtsSrLiquidLevelSensor = 27
 	// Timestamp20100101utc is EGTS initial time
 	Timestamp20100101utc = 1262304000
 )

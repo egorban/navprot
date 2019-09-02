@@ -24,6 +24,8 @@ const (
 	ndtpResultLen    = nphHeaderLen + nplHeaderLen + 4
 	ndtpExtResultLen = nphHeaderLen + nplHeaderLen + 8
 	navDataCellLen   = 28
+	uziMDataCellLen  = 8
+	m333DataCellLen  = 39
 
 	// NPH service types
 
