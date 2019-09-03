@@ -164,6 +164,9 @@ func (nph *Nph) parseNavData(message []byte) (err error) {
 		default:
 			break
 		}
+		if cellStart >= len(message) {
+			break
+		}
 	}
 	nph.Data = allData
 	return
