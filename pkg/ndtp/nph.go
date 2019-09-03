@@ -8,6 +8,16 @@ import (
 )
 
 var nplSignature = []byte{0x7E, 0x7E}
+var lenCells = map[byte]int{cellTypeNav: 28,
+	cellTypeSensor:  28,
+	cellTypeCorona:  16,
+	cellTypeIRMA:    17,
+	cellTypeKMD:     8,
+	cellTypeCounter: 11,
+	cellTypeDig:     3,
+	cellTypeUziM:    8,
+	cellTypeReg:     42,
+	cellTypeM333:    39}
 
 // Nph describes session layer of NDTP protocol
 type Nph struct {
@@ -93,81 +103,47 @@ func (nph *Nph) parse(message []byte) (err error) {
 func (nph *Nph) parseNavData(message []byte) (err error) {
 	cellStart := 0
 	allData := make([]interface{}, 0, 1)
-	for message[cellStart] <= 10 {
-		switch message[cellStart] {
-		case 0:
-			if len(message[cellStart:]) >= navDataCellLen {
+	for message[cellStart] <= cellTypeM333 {
+		cellType := message[cellStart]
+		switch cellType {
+		case cellTypeNav:
+			if len(message[cellStart:]) >= lenCells[cellTypeNav] {
 				data := new(NavData)
 				data.parse(message[cellStart:])
 				allData = append(allData, data)
-				cellStart = cellStart + navDataCellLen
+				cellStart = cellStart + lenCells[cellTypeNav]
 			} else {
 				err = errors.New("NavData type 0 is too short")
 				return
 			}
-		case 8:
-			if len(message[cellStart:]) >= uziMDataCellLen {
+		case cellTypeUziM:
+			if len(message[cellStart:]) >= lenCells[cellTypeUziM] {
 				data := new(FuelData)
 				data.parse_UziM(message[cellStart:])
 				allData = append(allData, data)
-				cellStart = cellStart + uziMDataCellLen
+				cellStart = cellStart + lenCells[cellTypeUziM]
 			} else {
 				err = errors.New("NavData type 8 is too short")
 				return
 			}
-		case 10:
-			if len(message[cellStart:]) >= m333DataCellLen {
+		case cellTypeM333:
+			if len(message[cellStart:]) >= lenCells[cellTypeM333] {
 				data := new(FuelData)
 				data.parse_M333(message[cellStart:])
 				allData = append(allData, data)
-				cellStart = cellStart + m333DataCellLen
+				cellStart = cellStart + lenCells[cellTypeM333]
 			} else {
 				err = errors.New("NavData type 10 is too short")
 				return
 			}
-		case 2:
-			if len(message[cellStart:]) >= 28 {
-				cellStart = cellStart + 28
-			} else {
-				return
-			}
-		case 3:
-			if len(message[cellStart:]) >= 16 {
-				cellStart = cellStart + 16
-			} else {
-				return
-			}
-		case 4:
-			if len(message[cellStart:]) >= 17 {
-				cellStart = cellStart + 17
-			} else {
-				return
-			}
-		case 5:
-			if len(message[cellStart:]) >= 8 {
-				cellStart = cellStart + 8
-			} else {
-				return
-			}
-		case 6:
-			if len(message[cellStart:]) >= 11 {
-				cellStart = cellStart + 11
-			} else {
-				return
-			}
-		case 7:
-			if len(message[cellStart:]) >= 3 {
-				cellStart = cellStart + 3
-			} else {
-				return
-			}
-		case 9:
-			if len(message[cellStart:]) >= 42 {
-				cellStart = cellStart + 42
-			} else {
-				return
-			}
 		default:
+			if len(message[cellStart:]) >= lenCells[cellType] {
+				cellStart = cellStart + lenCells[cellType]
+			} else {
+				return
+			}
+		}
+		if cellStart >= len(message) {
 			break
 		}
 	}
