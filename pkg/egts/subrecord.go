@@ -151,7 +151,7 @@ func (subData *SubRecord) formSrLiquidLevelSensor() (subrec []byte) {
 	if data.Type == 2 {
 		egtsFuel = uint32(math.Round(float64(egtsFuel * 10)))
 	}
-	subrec = append(subrec[:3], flags, 0, 0)
+	subrec[3] = flags
 	binary.LittleEndian.PutUint32(subrec[6:10], egtsFuel)
 	return
 }
