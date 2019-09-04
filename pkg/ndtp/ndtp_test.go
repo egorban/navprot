@@ -134,7 +134,7 @@ func TestPacket_String(t *testing.T) {
 }
 
 func wantNdtpString() string {
-	return "NPL: {DataType:2 PeerAddress:[0 0 0 0] ReqID:0}; NPH: {ServiceID:1, PacketType:101, RequestFlag:true, ReqID:5291}; Data: [ &{Time:1522961700 Lon:37.6925783 Lat:55.7890249 Bearing:339 Speed:0 Sos:false Lohs:1 Lahs:1 Valid:true} ]; Packet: [126 126 74 0 2 0 107 210 2 0 0 0 0 0 0 1 0 101 0 1 0 171 20 0 0 0 0 36 141 198 90 87 110 119 22 201 186 64 33 224 203 0 0 0 0 83 1 0 0 220 0 4 0 2 0 22 0 67 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 167 97 0 0 31 6 0 0 8 0 2 0 0 0 0 0]"
+	return "NPL: {PeerAddress:[0 0 0 0] DataType:2 ReqID:0}; NPH: {ServiceID:1, PacketType:101, RequestFlag:true, ReqID:5291}; Data: [ &{Time:1522961700 Lon:37.6925783 Lat:55.7890249 Bearing:339 Speed:0 Sos:false Lohs:1 Lahs:1 Valid:true} &{Type:255 Fuel:0} ]; Packet: [126 126 74 0 2 0 107 210 2 0 0 0 0 0 0 1 0 101 0 1 0 171 20 0 0 0 0 36 141 198 90 87 110 119 22 201 186 64 33 224 203 0 0 0 0 83 1 0 0 220 0 4 0 2 0 22 0 67 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 167 97 0 0 31 6 0 0 8 0 2 0 0 0 0 0]"
 }
 
 func packetFuel8() []byte {
