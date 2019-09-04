@@ -74,6 +74,8 @@ func (data *FuelData) parseUziM(message []byte) {
 			data.Type = 0
 			data.Fuel = levelMm
 		}
+	} else {
+		data.Type = 0xFF
 	}
 }
 
@@ -82,6 +84,8 @@ func (data *FuelData) parseM333(message []byte) {
 		fuelLevel := binary.LittleEndian.Uint16(message[18:20])
 		data.Type = byte(2 - (fuelLevel&0x8000)>>15)
 		data.Fuel = fuelLevel & 0x7fff
+	} else {
+		data.Type = 0xFF
 	}
 }
 
