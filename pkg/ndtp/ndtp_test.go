@@ -91,7 +91,7 @@ func packetExtResult() []byte {
 
 func ndtpNav() *Packet {
 	data := []interface{}{&NavData{1522961700, 37.6925783, 55.7890249, 339, 0, false, 1, 1, true},
-		&FuelData{0, 0}}
+		&FuelData{255, 0}}
 	nph := Nph{1, 101, true, 5291, data}
 	npl := NplData{make([]byte, 4), 0x02, 0x00}
 	packExpected := []byte{126, 126, 74, 0, 2, 0, 107, 210, 2, 0, 0, 0, 0, 0, 0, 1, 0, 101, 0, 1, 0, 171,
