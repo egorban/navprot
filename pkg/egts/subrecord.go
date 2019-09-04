@@ -139,11 +139,11 @@ func (subData *SubRecord) formSrLiquidLevelSensor() (subrec []byte) {
 	subrec[0] = byte(EgtsSrLiquidLevelSensor)
 	binary.LittleEndian.PutUint16(subrec[1:3], uint16(egtsSubrecFuelDataLen))
 	llsef := byte(0)
-	if data.Type < 0 {
+	if data.Type == 0xFF {
 		llsef = 1
 	}
 	llsvu := byte(0)
-	if data.Type > 0 {
+	if data.Type != 0xFF {
 		llsvu = data.Type
 	}
 	flags := (llsef << 0x06) | (llsvu << 0x04)
@@ -151,7 +151,7 @@ func (subData *SubRecord) formSrLiquidLevelSensor() (subrec []byte) {
 	if data.Type == 2 {
 		egtsFuel = uint32(math.Round(float64(egtsFuel * 10)))
 	}
-	subrec = append(subrec[:3], flags, 0, 0)
+	subrec[3] = flags
 	binary.LittleEndian.PutUint32(subrec[6:10], egtsFuel)
 	return
 }
