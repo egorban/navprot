@@ -23,7 +23,7 @@ const (
 	EgtsTeledataService = 2
 	// EgtsSrPosData defines EGTS_SR_POS_DATA subrecord
 	EgtsSrPosData = 16
-	// EgtsSrPosData defines EGTS_SR_LIQUID_LEVEL_SENSOR subrecord
+	// EgtsSrLiquidLevelSensor defines EGTS_SR_LIQUID_LEVEL_SENSOR subrecord
 	EgtsSrLiquidLevelSensor = 27
 	// Timestamp20100101utc is EGTS initial time
 	Timestamp20100101utc = 1262304000
@@ -70,7 +70,7 @@ func (packetData *Packet) Parse(message []byte) (restBuf []byte, err error) {
 // Form generate EGTS binary packet.
 func (packetData *Packet) Form() (data []byte, err error) {
 	data, err = formData(packetData)
-	header := []byte{0x01, 0x00, 0x00, byte(minEgtsHeaderLen), 0x00, 0x00, 0x00, 0x00, 0x00, byte(packetData.Type)}
+	header := []byte{0x01, 0x00, 0x00, byte(minEgtsHeaderLen), 0x00, 0x00, 0x00, 0x00, 0x00, packetData.Type}
 	binary.LittleEndian.PutUint16(header[5:7], uint16(len(data)))
 	binary.LittleEndian.PutUint16(header[7:9], packetData.ID)
 	crcPacket := crc8EGTS(header)
