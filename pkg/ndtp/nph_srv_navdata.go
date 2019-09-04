@@ -63,21 +63,21 @@ func (data *NavData) toGeneral() *general.NavData {
 	return gen
 }
 
-func (data *FuelData) parse_UziM(message []byte) {
-	level_mm := binary.LittleEndian.Uint16(message[3:5])
-	level_l := binary.LittleEndian.Uint16(message[5:7])
+func (data *FuelData) parseUziM(message []byte) {
+	levelMm := binary.LittleEndian.Uint16(message[3:5])
+	levelL := binary.LittleEndian.Uint16(message[5:7])
 	if message[2] == 0 {
-		if level_l > 0 {
+		if levelL > 0 {
 			data.Type = 2
-			data.Fuel = level_l
+			data.Fuel = levelL
 		} else {
 			data.Type = 0
-			data.Fuel = level_mm
+			data.Fuel = levelMm
 		}
 	}
 }
 
-func (data *FuelData) parse_M333(message []byte) {
+func (data *FuelData) parseM333(message []byte) {
 	if binary.LittleEndian.Uint32(message[2:6]) != 0xFFFFFFFF {
 		fuelLevel := binary.LittleEndian.Uint16(message[18:20])
 		data.Type = byte(2 - (fuelLevel&0x8000)>>15)

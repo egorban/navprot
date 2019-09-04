@@ -24,9 +24,9 @@ type Confirmation struct {
 
 // PosData describes EGTS_SR_POS_DATA subrecord
 type PosData struct {
-	Time     uint32
 	Lon      float64
 	Lat      float64
+	Time     uint32
 	Bearing  uint16
 	Speed    uint16
 	Lohs     byte
