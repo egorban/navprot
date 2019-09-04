@@ -103,7 +103,7 @@ func (nph *Nph) parse(message []byte) (err error) {
 func (nph *Nph) parseNavData(message []byte) (err error) {
 	cellStart := 0
 	allData := make([]interface{}, 0, 1)
-	for message[cellStart] <= cellTypeM333 {
+	for cellStart < len(message) {
 		cellType := message[cellStart]
 		switch cellType {
 		case cellTypeNav:
@@ -119,7 +119,7 @@ func (nph *Nph) parseNavData(message []byte) (err error) {
 		case cellTypeUziM:
 			if len(message[cellStart:]) >= lenCells[cellTypeUziM] {
 				data := new(FuelData)
-				data.parse_UziM(message[cellStart:])
+				data.parseUziM(message[cellStart:])
 				allData = append(allData, data)
 				cellStart = cellStart + lenCells[cellTypeUziM]
 			} else {
@@ -129,7 +129,7 @@ func (nph *Nph) parseNavData(message []byte) (err error) {
 		case cellTypeM333:
 			if len(message[cellStart:]) >= lenCells[cellTypeM333] {
 				data := new(FuelData)
-				data.parse_M333(message[cellStart:])
+				data.parseM333(message[cellStart:])
 				allData = append(allData, data)
 				cellStart = cellStart + lenCells[cellTypeM333]
 			} else {
@@ -137,14 +137,11 @@ func (nph *Nph) parseNavData(message []byte) (err error) {
 				return
 			}
 		default:
-			if len(message[cellStart:]) >= lenCells[cellType] {
+			if cellType < cellTypeM333 {
 				cellStart = cellStart + lenCells[cellType]
 			} else {
-				return
+				cellStart = len(message)
 			}
-		}
-		if cellStart >= len(message) {
-			break
 		}
 	}
 	nph.Data = allData
@@ -155,7 +152,6 @@ func (nph *Nph) parseGenControl(message []byte) {
 	if nph.packetType() == NphSgsConnRequest {
 		nph.Data = binary.LittleEndian.Uint32(message[6:10])
 	}
-	return
 }
 
 func (nph *Nph) parseExtDevice(message []byte) (err error) {

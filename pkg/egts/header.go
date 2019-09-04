@@ -37,7 +37,7 @@ func (packetData *Packet) parseHeader(message []byte) (body, restBuf []byte, err
 	}
 	startBody := index + headerLen
 	bodyLen := int(binary.LittleEndian.Uint16(header[5:7]))
-	if len(message[startBody:]) < int(bodyLen)+2 {
+	if len(message[startBody:]) < bodyLen+2 {
 		err = errors.New("message is too short")
 		return
 	}

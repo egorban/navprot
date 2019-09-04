@@ -19,7 +19,6 @@ type Packet struct {
 
 const (
 	nplHeaderLen     = 15
-	nphResult        = 0
 	nphHeaderLen     = 10
 	ndtpResultLen    = nphHeaderLen + nplHeaderLen + 4
 	ndtpExtResultLen = nphHeaderLen + nplHeaderLen + 8
@@ -193,5 +192,4 @@ func maybeSetRealTime(gen general.Subrecord, t string) {
 		//gen.(*general.NavData).RealTime = true
 		v.RealTime = true
 	}
-	return
 }

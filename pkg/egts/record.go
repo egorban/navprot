@@ -7,14 +7,14 @@ import (
 
 // Record describes record of EGTS_PT_SIGNED_APPDATA packet
 type Record struct {
-	// Record Number
-	RecNum uint16
-	// Object Identifier
-	ID uint32
-	// Source Service Type
-	Service byte
 	// Record Data
 	Data []*SubRecord
+	// Object Identifier
+	ID uint32
+	// Record Number
+	RecNum uint16
+	// Source Service Type
+	Service byte
 }
 
 func (recData *Record) form() (record []byte, err error) {
