@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/ashirko/navprot/pkg/general"
 )
 
 var nplSignature = []byte{0x7E, 0x7E}
@@ -25,6 +26,11 @@ type Nph struct {
 	RequestFlag bool
 	ReqID       uint32
 	Data        interface{}
+}
+
+// Subrecord is an interface for data that can be converted into general.Subrecord
+type Subrecord interface {
+	toGeneral() general.Subrecord
 }
 
 func (nph *Nph) String() string {
@@ -142,24 +148,6 @@ func (nph *Nph) parseNavData(message []byte) (err error) {
 	return
 }
 
-//func (nph *Nph) parseNavData(message []byte) (err error) {
-//	cellStart := 0
-//	allData := make([]*NavData, 0, 1)
-//	for message[cellStart] == 0 {
-//		if len(message[cellStart:]) >= navDataCellLen {
-//			data := new(NavData)
-//			data.parse(message[cellStart:])
-//			allData = append(allData, data)
-//			cellStart = cellStart + navDataCellLen
-//		} else {
-//			err = errors.New("NavData type 0 is too short")
-//			return
-//		}
-//	}
-//	nph.Data = allData
-//	return
-//}
-
 func (nph *Nph) parseGenControl(message []byte) {
 	if nph.packetType() == NphSgsConnRequest {
 		nph.Data = binary.LittleEndian.Uint32(message[6:10])
@@ -185,7 +173,6 @@ func sData(data interface{}) (sdata string) {
 		sdata = fmt.Sprintf("%+v", *ext)
 	case []interface{}:
 		tmp := "["
-		//for _, e := range data.([]*NavData) {
 		for _, e := range data.([]interface{}) {
 			tmp = tmp + fmt.Sprintf(" %+v", e)
 		}

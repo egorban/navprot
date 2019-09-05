@@ -175,15 +175,21 @@ func (packetData *Packet) ChangePacket(changes map[string]int) {
 // ToGeneral form general subrecords from NDTP packet
 func (packetData *Packet) ToGeneral() (subrecords []general.Subrecord, err error) {
 	if packetData.Service() == NphSrvNavdata {
-		for _, sub := range packetData.Nph.Data.([]*NavData) { //TODO fix type assertion
+		for _, sub := range packetData.Nph.Data.([]Subrecord) { //TODO fix type assertion
 			gen := sub.toGeneral()
-			if packetData.PacketType() == NphSndRealtime {
-				gen.RealTime = true
-			}
+			maybeSetRealTime(gen, packetData.PacketType())
 			subrecords = append(subrecords, gen)
 		}
 	} else {
 		err = errors.New("incorrect packet type")
 	}
 	return
+}
+
+func maybeSetRealTime(gen general.Subrecord, t string) {
+	v, ok := gen.(*general.NavData)
+	if t == NphSndRealtime && ok {
+		//gen.(*general.NavData).RealTime = true
+		v.RealTime = true
+	}
 }

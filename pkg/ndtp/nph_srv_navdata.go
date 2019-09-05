@@ -48,7 +48,7 @@ func (data *NavData) parse(message []byte) {
 	data.Bearing = binary.LittleEndian.Uint16(message[20:22])
 }
 
-func (data *NavData) toGeneral() *general.NavData {
+func (data *NavData) toGeneral() general.Subrecord {
 	gen := &general.NavData{
 		Time:    data.Time,
 		Lon:     data.Lon,
@@ -87,4 +87,12 @@ func (data *FuelData) parseM333(message []byte) {
 	} else {
 		data.Type = 0xFF
 	}
+}
+
+func (data *FuelData) toGeneral() general.Subrecord {
+	gen := &general.FuelData{
+		Type: data.Type,
+		Fuel: uint32(data.Fuel),
+	}
+	return gen
 }
