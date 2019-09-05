@@ -124,7 +124,6 @@ func (nph *Nph) parseGenControl(message []byte) {
 	if nph.packetType() == NphSgsConnRequest {
 		nph.Data = binary.LittleEndian.Uint32(message[6:10])
 	}
-	return
 }
 
 func (nph *Nph) parseExtDevice(message []byte) (err error) {

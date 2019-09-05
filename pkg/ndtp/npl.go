@@ -9,8 +9,8 @@ import (
 
 // NplData describes transport layer of NDPT protocol
 type NplData struct {
-	DataType    byte
 	PeerAddress []byte
+	DataType    byte
 	ReqID       uint16
 }
 

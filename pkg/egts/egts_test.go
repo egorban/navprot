@@ -138,6 +138,8 @@ func TestPacket_Form(t *testing.T) {
 		wantErr    bool
 	}{
 		{name: "navData", packetData: navPacket(), wantData: wantNavData(), wantErr: false},
+		{name: "fuelData", packetData: fuelPacket(), wantData: wantFuelData(), wantErr: false},
+		{name: "navAndFuelData", packetData: navAndFuelPacket(), wantData: wantNavAndFuelData(), wantErr: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -182,4 +184,79 @@ func navPacket() *Packet {
 func wantNavData() []byte {
 	return []byte{1, 0, 0, 11, 0, 35, 0, 0, 0, 1, 153, 24, 0, 0, 0, 1, 239, 0, 0, 0, 2, 2,
 		16, 21, 0, 210, 49, 43, 16, 79, 186, 58, 158, 210, 39, 188, 53, 3, 0, 0, 178, 0, 0, 0, 0, 0, 106, 141}
+}
+
+func fuelPacket() *Packet {
+	fuelData := &FuelData{
+		Type: 2,
+		Fuel: 2,
+	}
+	subrec := &SubRecord{
+		Type: EgtsSrLiquidLevelSensor,
+		Data: fuelData,
+	}
+	rec := &Record{
+		RecNum:  0,
+		ID:      239,
+		Service: EgtsTeledataService,
+		Data:    []*SubRecord{subrec},
+	}
+	return &Packet{
+		Type:    EgtsPtAppdata,
+		ID:      0,
+		Records: []*Record{rec},
+		Data:    nil,
+	}
+}
+
+func wantFuelData() []byte {
+	return []byte{1, 0, 0, 11, 0, 21, 0, 0, 0, 1, 149,
+		10, 0, 0, 0, 1, 239, 0, 0, 0, 2, 2,
+		27, 7, 0, 32, 0, 0, 20, 0, 0, 0,
+		151, 47}
+}
+
+func navAndFuelPacket() *Packet {
+	posData := &PosData{
+		Time:    1533570258 - Timestamp20100101utc,
+		Lon:     37.782409656276556,
+		Lat:     55.62752532903746,
+		Bearing: 178,
+		Valid:   1,
+	}
+
+	fuelData := &FuelData{
+		Type: 2,
+		Fuel: 2,
+	}
+
+	subrec0 := &SubRecord{
+		Type: EgtsSrPosData,
+		Data: posData,
+	}
+
+	subrec1 := &SubRecord{
+		Type: EgtsSrLiquidLevelSensor,
+		Data: fuelData,
+	}
+	rec := &Record{
+		RecNum:  0,
+		ID:      239,
+		Service: EgtsTeledataService,
+		Data:    []*SubRecord{subrec0, subrec1},
+	}
+	return &Packet{
+		Type:    EgtsPtAppdata,
+		ID:      0,
+		Records: []*Record{rec},
+		Data:    nil,
+	}
+}
+
+func wantNavAndFuelData() []byte {
+	return []byte{1, 0, 0, 11, 0, 45, 0, 0, 0, 1, 47,
+		34, 0, 0, 0, 1, 239, 0, 0, 0, 2, 2,
+		16, 21, 0, 210, 49, 43, 16, 79, 186, 58, 158, 210, 39, 188, 53, 3, 0, 0, 178, 0, 0, 0, 0, 0,
+		27, 7, 0, 32, 0, 0, 20, 0, 0, 0,
+		148, 199}
 }
