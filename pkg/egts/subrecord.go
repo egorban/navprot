@@ -64,8 +64,11 @@ func (subData *SubRecord) parseResponce(buff []byte) {
 }
 
 func (subData *SubRecord) parseTeledataService(buff []byte) {
-	if subData.Type == EgtsSrPosData {
+	switch subData.Type {
+	case EgtsSrPosData:
 		subData.parseSrPosData(buff)
+	case EgtsSrLiquidLevelSensor:
+		subData.parseSrLiquidLevelSensor(buff)
 	}
 	//todo handle errors
 }
@@ -88,6 +91,28 @@ func (subData *SubRecord) parseSrPosData(buff []byte) {
 	data.Bearing = uint16(dirHi)*256 + uint16(dirLo)
 	data.Source = buff[20]
 	subData.Data = data
+}
+
+func (subData *SubRecord) parseSrLiquidLevelSensor(buff []byte) {
+	data := new(FuelData)
+	rdf := buff[0] >> 3 & 1
+	if rdf == 0 {
+		llsef := buff[0] >> 6 & 1
+		if llsef == 0 {
+			llsvu := buff[0] >> 4 & 3
+			fuel := binary.LittleEndian.Uint32(buff[3:7])
+			if llsvu < 2 {
+				data.Type = llsvu
+				data.Fuel = fuel
+			} else if llsvu == 2 {
+				data.Type = 2
+				data.Fuel = fuel / 10
+			}
+		} else {
+			data.Type = 0xFF
+		}
+		subData.Data = data
+	}
 }
 
 func (subData *SubRecord) form(service byte) (sub []byte, err error) {

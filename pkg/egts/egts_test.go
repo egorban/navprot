@@ -21,6 +21,8 @@ func TestEGTS_Parse(t *testing.T) {
 		{"shortBody", egtsShortBody(), nil, new(Packet), true},
 		{"incorrectHeaderCrc", egtsIncorrectHeaderCrc(), nil, new(Packet), true},
 		{"incorrectBodyCrc", egtsIncorrectBodyCrc(), nil, new(Packet), true},
+		{"fuelData", packetFuelData(), nil, egtsFuelData(), false},
+		{"posAndFuelData", packetPosAndFuelData(), nil, egtsPosAndFuelData(), false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -51,6 +53,21 @@ func egtsWithoutSignature() []byte {
 func packetPosData() []byte {
 	return []byte{1, 0, 0, 11, 0, 35, 0, 0, 0, 1, 153, 24, 0, 0, 0, 1, 239, 0, 0, 0, 2, 2,
 		16, 21, 0, 210, 49, 43, 16, 79, 186, 58, 158, 210, 39, 188, 53, 3, 0, 0, 178, 0, 0, 0, 0, 0, 106, 141}
+}
+
+func packetFuelData() []byte {
+	return []byte{1, 0, 0, 11, 0, 21, 0, 0, 0, 1, 149,
+		10, 0, 0, 0, 1, 239, 0, 0, 0, 2, 2,
+		27, 7, 0, 32, 0, 0, 20, 0, 0, 0,
+		151, 47}
+}
+
+func packetPosAndFuelData() []byte {
+	return []byte{1, 0, 0, 11, 0, 45, 0, 0, 0, 1, 47,
+		34, 0, 0, 0, 1, 239, 0, 0, 0, 2, 2,
+		16, 21, 0, 210, 49, 43, 16, 79, 186, 58, 158, 210, 39, 188, 53, 3, 0, 0, 178, 0, 0, 0, 0, 0,
+		27, 7, 0, 32, 0, 0, 20, 0, 0, 0,
+		148, 199}
 }
 
 func egtsIncorrectHeaderCrc() []byte {
@@ -121,6 +138,63 @@ func egtsPosData() *Packet {
 		ID:      239,
 		Service: EgtsTeledataService,
 		Data:    []*SubRecord{&sub},
+	}
+	return &Packet{
+		Type:    EgtsPtAppdata,
+		ID:      0,
+		Records: []*Record{&rec},
+		Data:    nil,
+	}
+}
+
+func egtsFuelData() *Packet {
+	data := FuelData{
+		Type: 2,
+		Fuel: 2,
+	}
+	sub := SubRecord{
+		Type: EgtsSrLiquidLevelSensor,
+		Data: &data,
+	}
+	rec := Record{
+		RecNum:  0,
+		ID:      239,
+		Service: EgtsTeledataService,
+		Data:    []*SubRecord{&sub},
+	}
+	return &Packet{
+		Type:    EgtsPtAppdata,
+		ID:      0,
+		Records: []*Record{&rec},
+		Data:    nil,
+	}
+}
+
+func egtsPosAndFuelData() *Packet {
+	dataPos := PosData{
+		Time:    1533570258 - Timestamp20100101utc,
+		Lon:     37.782409656276556,
+		Lat:     55.62752532903746,
+		Bearing: 178,
+		Valid:   1,
+	}
+	dataFule := FuelData{
+		Type: 2,
+		Fuel: 2,
+	}
+	subPos := SubRecord{
+		Type: EgtsSrPosData,
+		Data: &dataPos,
+	}
+	subFuel := SubRecord{
+		Type: EgtsSrLiquidLevelSensor,
+		Data: &dataFule,
+	}
+	rec := Record{
+		RecNum:  0,
+		ID:      239,
+		Service: EgtsTeledataService,
+		Data:    []*SubRecord{&subPos, &subFuel},
 	}
 	return &Packet{
 		Type:    EgtsPtAppdata,
