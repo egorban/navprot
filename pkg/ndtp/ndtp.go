@@ -19,11 +19,21 @@ type Packet struct {
 
 const (
 	nplHeaderLen     = 15
-	nphResult        = 0
 	nphHeaderLen     = 10
 	ndtpResultLen    = nphHeaderLen + nplHeaderLen + 4
 	ndtpExtResultLen = nphHeaderLen + nplHeaderLen + 8
-	navDataCellLen   = 28
+
+	// Cell Types
+	cellTypeNav     = 0
+	cellTypeSensor  = 2
+	cellTypeCorona  = 3
+	cellTypeIRMA    = 4
+	cellTypeKMD     = 5
+	cellTypeCounter = 6
+	cellTypeDig     = 7
+	cellTypeUziM    = 8
+	cellTypeReg     = 9
+	cellTypeM333    = 10
 
 	// NPH service types
 
@@ -182,5 +192,4 @@ func maybeSetRealTime(gen general.Subrecord, t string) {
 		//gen.(*general.NavData).RealTime = true
 		v.RealTime = true
 	}
-	return
 }

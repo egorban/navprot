@@ -8,6 +8,16 @@ import (
 )
 
 var nplSignature = []byte{0x7E, 0x7E}
+var lenCells = map[byte]int{cellTypeNav: 28,
+	cellTypeSensor:  28,
+	cellTypeCorona:  16,
+	cellTypeIRMA:    17,
+	cellTypeKMD:     8,
+	cellTypeCounter: 11,
+	cellTypeDig:     3,
+	cellTypeUziM:    8,
+	cellTypeReg:     42,
+	cellTypeM333:    39}
 
 // Nph describes session layer of NDTP protocol
 type Nph struct {
@@ -93,15 +103,45 @@ func (nph *Nph) parse(message []byte) (err error) {
 func (nph *Nph) parseNavData(message []byte) (err error) {
 	cellStart := 0
 	allData := make([]interface{}, 0, 1)
-	for message[cellStart] == 0 {
-		if len(message[cellStart:]) >= navDataCellLen {
-			data := new(NavData)
-			data.parse(message[cellStart:])
-			allData = append(allData, data)
-			cellStart = cellStart + navDataCellLen
-		} else {
-			err = errors.New("NavData type 0 is too short")
-			return
+	for cellStart < len(message) {
+		cellType := message[cellStart]
+		switch cellType {
+		case cellTypeNav:
+			if len(message[cellStart:]) >= lenCells[cellTypeNav] {
+				data := new(NavData)
+				data.parse(message[cellStart:])
+				allData = append(allData, data)
+				cellStart = cellStart + lenCells[cellTypeNav]
+			} else {
+				err = errors.New("NavData type 0 is too short")
+				return
+			}
+		case cellTypeUziM:
+			if len(message[cellStart:]) >= lenCells[cellTypeUziM] {
+				data := new(FuelData)
+				data.parseUziM(message[cellStart:])
+				allData = append(allData, data)
+				cellStart = cellStart + lenCells[cellTypeUziM]
+			} else {
+				err = errors.New("NavData type 8 is too short")
+				return
+			}
+		case cellTypeM333:
+			if len(message[cellStart:]) >= lenCells[cellTypeM333] {
+				data := new(FuelData)
+				data.parseM333(message[cellStart:])
+				allData = append(allData, data)
+				cellStart = cellStart + lenCells[cellTypeM333]
+			} else {
+				err = errors.New("NavData type 10 is too short")
+				return
+			}
+		default:
+			if cellType < cellTypeM333 {
+				cellStart = cellStart + lenCells[cellType]
+			} else {
+				cellStart = len(message)
+			}
 		}
 	}
 	nph.Data = allData
@@ -112,7 +152,6 @@ func (nph *Nph) parseGenControl(message []byte) {
 	if nph.packetType() == NphSgsConnRequest {
 		nph.Data = binary.LittleEndian.Uint32(message[6:10])
 	}
-	return
 }
 
 func (nph *Nph) parseExtDevice(message []byte) (err error) {

@@ -24,9 +24,9 @@ type Confirmation struct {
 
 // PosData describes EGTS_SR_POS_DATA subrecord
 type PosData struct {
-	Time     uint32
 	Lon      float64
 	Lat      float64
+	Time     uint32
 	Bearing  uint16
 	Speed    uint16
 	Lohs     byte
@@ -35,6 +35,12 @@ type PosData struct {
 	RealTime byte
 	Valid    byte
 	Source   byte
+}
+
+// FuelData contains information about fuel level
+type FuelData struct {
+	Type byte
+	Fuel uint32
 }
 
 func (subData *SubRecord) parse(service byte, buff []byte) []byte {
@@ -90,6 +96,8 @@ func (subData *SubRecord) form(service byte) (sub []byte, err error) {
 		sub = subData.formPosData()
 	case *Confirmation:
 		sub = subData.formResponce()
+	case *FuelData:
+		sub = subData.formSrLiquidLevelSensor()
 	default:
 		err = fmt.Errorf("subrecord type %T is not implemented", t)
 	}
@@ -122,6 +130,29 @@ func (subData *SubRecord) formResponce() (subrec []byte) {
 	binary.LittleEndian.PutUint16(subrec[1:3], uint16(3))
 	binary.LittleEndian.PutUint16(subrec[3:5], data.CRN)
 	subrec[5] = data.RST
+	return
+}
+
+func (subData *SubRecord) formSrLiquidLevelSensor() (subrec []byte) {
+	data := subData.Data.(*FuelData)
+	subrec = make([]byte, egtsSubrecFuelDataLen+3)
+	subrec[0] = byte(EgtsSrLiquidLevelSensor)
+	binary.LittleEndian.PutUint16(subrec[1:3], uint16(egtsSubrecFuelDataLen))
+	llsef := byte(0)
+	if data.Type == 0xFF {
+		llsef = 1
+	}
+	llsvu := byte(0)
+	if data.Type != 0xFF {
+		llsvu = data.Type
+	}
+	flags := (llsef << 0x06) | (llsvu << 0x04)
+	egtsFuel := data.Fuel
+	if data.Type == 2 {
+		egtsFuel = uint32(math.Round(float64(egtsFuel * 10)))
+	}
+	subrec[3] = flags
+	binary.LittleEndian.PutUint32(subrec[6:10], egtsFuel)
 	return
 }
 

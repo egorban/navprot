@@ -20,6 +20,12 @@ type NavData struct {
 	Valid bool
 }
 
+// FuelData contains information about fuel level
+type FuelData struct {
+	Type byte
+	Fuel uint16
+}
+
 func (data *NavData) parse(message []byte) {
 	data.Time = binary.LittleEndian.Uint32(message[2:6])
 	lon := binary.LittleEndian.Uint32(message[6:10])
@@ -53,6 +59,40 @@ func (data *NavData) toGeneral() general.Subrecord {
 	}
 	if data.Sos {
 		gen.Source = 13
+	}
+	return gen
+}
+
+func (data *FuelData) parseUziM(message []byte) {
+	levelMm := binary.LittleEndian.Uint16(message[3:5])
+	levelL := binary.LittleEndian.Uint16(message[5:7])
+	if message[2] == 0 {
+		if levelL > 0 {
+			data.Type = 2
+			data.Fuel = levelL
+		} else {
+			data.Type = 0
+			data.Fuel = levelMm
+		}
+	} else {
+		data.Type = 0xFF
+	}
+}
+
+func (data *FuelData) parseM333(message []byte) {
+	if binary.LittleEndian.Uint32(message[2:6]) != 0xFFFFFFFF {
+		fuelLevel := binary.LittleEndian.Uint16(message[18:20])
+		data.Type = byte(2 - (fuelLevel&0x8000)>>15)
+		data.Fuel = fuelLevel & 0x7fff
+	} else {
+		data.Type = 0xFF
+	}
+}
+
+func (data *FuelData) toGeneral() general.Subrecord {
+	gen := &general.FuelData{
+		Type: data.Type,
+		Fuel: uint32(data.Fuel),
 	}
 	return gen
 }
