@@ -152,6 +152,7 @@ func (subData *SubRecord) formPosData() (subrec []byte) {
 func (subData *SubRecord) formResponce() (subrec []byte) {
 	data := subData.Data.(*Confirmation)
 	subrec = make([]byte, 6)
+	subrec[0] = EgtsSrResponse
 	binary.LittleEndian.PutUint16(subrec[1:3], uint16(3))
 	binary.LittleEndian.PutUint16(subrec[3:5], data.CRN)
 	subrec[5] = data.RST
