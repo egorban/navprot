@@ -32,7 +32,7 @@ func (recData *Record) form() (record []byte, err error) {
 	return record, nil
 }
 
-func (recData *Record) form_response() (record []byte, err error) {
+func (recData *Record) formResponse() (record []byte, err error) {
 	subrec, err := recData.formSubrecords()
 	if err != nil {
 		return nil, err

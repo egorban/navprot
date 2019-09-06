@@ -136,7 +136,7 @@ func (packetData *Packet) formResponse() ([]byte, error) {
 	packet := make([]byte, 3)
 	binary.LittleEndian.PutUint16(packet[0:2], packetData.ID)
 	for _, rec := range packetData.Records {
-		recBin, err := rec.form_response()
+		recBin, err := rec.formResponse()
 		if err != nil {
 			return nil, err
 		}
