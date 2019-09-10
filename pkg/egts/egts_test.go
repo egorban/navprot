@@ -236,7 +236,7 @@ func responsePacket() *Packet {
 		ProcRes: 0,
 	}
 	subData := Confirmation{
-		CRN: 6,
+		CRN: 5,
 		RST: 0,
 	}
 	sub := SubRecord{
@@ -244,21 +244,21 @@ func responsePacket() *Packet {
 		Data: &subData,
 	}
 	rec := Record{
-		RecNum:  6,
+		RecNum:  0,
 		ID:      0,
 		Service: EgtsTeledataService,
 		Data:    []*SubRecord{&sub},
 	}
 	return &Packet{
 		Type:    0,
-		ID:      6,
+		ID:      0,
 		Records: []*Record{&rec},
 		Data:    &data,
 	}
 }
 
 func wantResponseData() []byte {
-	return []byte{1, 0, 3, 11, 0, 16, 0, 6, 0, 0, 22, 6, 0, 0, 6, 0, 6, 0, 24, 2, 2, 0, 3, 0, 6, 0, 0, 24, 29}
+	return []byte{1, 0, 3, 11, 0, 16, 0, 0, 0, 0, 179, 6, 0, 0, 6, 0, 0, 0, 24, 2, 2, 0, 3, 0, 5, 0, 0, 188, 181}
 }
 
 func navPacket() *Packet {

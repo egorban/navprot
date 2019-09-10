@@ -190,6 +190,8 @@ func (subData *SubRecord) String() string {
 		data = subData.Data.(*Confirmation).String()
 	case *PosData:
 		data = subData.Data.(*PosData).String()
+	case *FuelData:
+		data = subData.Data.(*FuelData).String()
 	default:
 		data = fmt.Sprintf("%v", data)
 	}
@@ -201,6 +203,10 @@ func (sub *PosData) String() string {
 }
 
 func (sub *Confirmation) String() string {
+	return stringDefault(*sub)
+}
+
+func (sub *FuelData) String() string {
 	return stringDefault(*sub)
 }
 
