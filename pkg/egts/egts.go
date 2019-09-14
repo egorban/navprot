@@ -8,8 +8,6 @@ import (
 	"fmt"
 )
 
-const egtsPtResponse byte = 0
-
 const (
 	prvSignature          = 0x01
 	minEgtsHeaderLen      = 11
@@ -21,12 +19,16 @@ const (
 	EgtsPtAppdata = 1
 	// EgtsTeledataService defines EGTS_TELEDATA_SERVICE
 	EgtsTeledataService = 2
+	// EgtsPtResponse defines response subrecord
+	EgtsPtResponse = 0
 	// EgtsSrPosData defines EGTS_SR_POS_DATA subrecord
 	EgtsSrPosData = 16
 	// EgtsSrLiquidLevelSensor defines EGTS_SR_LIQUID_LEVEL_SENSOR subrecord
 	EgtsSrLiquidLevelSensor = 27
 	// Timestamp20100101utc is EGTS initial time
 	Timestamp20100101utc = 1262304000
+	// Success status
+	Success = 0
 )
 
 // Packet contains information about about EGTS protocol (ERA GLONASS Telematics Standard) packet
@@ -56,7 +58,7 @@ func (packetData *Packet) Parse(message []byte) (restBuf []byte, err error) {
 		return
 	}
 	switch packetData.Type {
-	case egtsPtResponse:
+	case EgtsPtResponse:
 		packetData.parseResponce(body)
 	case EgtsPtAppdata:
 		packetData.parseAppData(body)
@@ -136,7 +138,7 @@ func parseRecords(body []byte) []*Record {
 
 func (packetData *Packet) data2String() (body string) {
 	prefix := ""
-	if packetData.Type == egtsPtResponse {
+	if packetData.Type == EgtsPtResponse {
 		prefix = prefix + "{Confirmation: " + fmt.Sprintf("%+v", *packetData.Data.(*Response)) + "}; "
 	}
 	prefix = prefix + "Records: "

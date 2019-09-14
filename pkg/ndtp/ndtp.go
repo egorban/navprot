@@ -76,6 +76,9 @@ const (
 	NphReqID = "NphReqID"
 	// PacketType defines NPH type field
 	PacketType = "PacketType"
+
+	// NphResultOk means request was successfully completed
+	NphResultOk = 0
 )
 
 // Parse NDTP packet. Parsed information is stored in variable with NDTP type.
@@ -136,16 +139,7 @@ func (packetData *Packet) NeedReply() (flag bool) {
 
 // Reply creates NPH_RESULT packet for packetData.Packet
 func (packetData *Packet) Reply(result uint32) []byte {
-	reply := make([]byte, ndtpResultLen)
-	copy(reply, packetData.Packet[:nplHeaderLen+nphHeaderLen])
-	for i := nplHeaderLen + 2; i < nplHeaderLen+6; i++ {
-		reply[i] = 0
-	}
-	binary.LittleEndian.PutUint32(reply[nplHeaderLen+nphHeaderLen:], result)
-	binary.LittleEndian.PutUint16(reply[2:], uint16(ndtpResultLen-nplHeaderLen))
-	crc := crc16(reply[nplHeaderLen:])
-	binary.BigEndian.PutUint16(reply[6:], crc)
-	return reply
+	return MakeReply(packetData.Packet, result)
 }
 
 // ReplyExt creates NPH_SED_DEVICE_RESULT packet
@@ -157,19 +151,9 @@ func (packetData *Packet) ReplyExt(result uint32) ([]byte, error) {
 	return nil, errors.New("incorrect packet service")
 }
 
-// ChangePacket changes values of some fields in NDTP packet
+// Change changes values of some fields in NDTP packet
 func (packetData *Packet) ChangePacket(changes map[string]int) {
-	if nplReqID, ok := changes[NplReqID]; ok {
-		binary.LittleEndian.PutUint16(packetData.Packet[13:], uint16(nplReqID))
-	}
-	if nphReqID, ok := changes[NphReqID]; ok {
-		binary.LittleEndian.PutUint32(packetData.Packet[nplHeaderLen+6:], uint32(nphReqID))
-	}
-	if packetType, ok := changes[PacketType]; ok {
-		binary.LittleEndian.PutUint16(packetData.Packet[nplHeaderLen+2:], uint16(packetType))
-	}
-	crc := crc16(packetData.Packet[nplHeaderLen:])
-	binary.BigEndian.PutUint16(packetData.Packet[6:], crc)
+	packetData.Packet = Change(packetData.Packet, changes)
 }
 
 // ToGeneral form general subrecords from NDTP packet
@@ -186,10 +170,50 @@ func (packetData *Packet) ToGeneral() (subrecords []general.Subrecord, err error
 	return
 }
 
+// SimpleParse check if packet is correct and return it's service
+func SimpleParse(buff []byte) (packet, rest []byte, service uint16, nphID uint32, err error) {
+	packet, rest, err = simpleParseNPL(buff)
+	if err != nil {
+		return
+	}
+	if len(packet) > nplHeaderLen + 10 {
+		service = binary.LittleEndian.Uint16(packet[nplHeaderLen:nplHeaderLen+2])
+		nphID = binary.LittleEndian.Uint32(packet[nplHeaderLen+6:nplHeaderLen+10])
+	}
+	return
+}
+
+func MakeReply(packet []byte, result uint32) []byte {
+	reply := make([]byte, ndtpResultLen)
+	copy(reply,packet[:nplHeaderLen+nphHeaderLen])
+	for i := nplHeaderLen + 2; i < nplHeaderLen+6; i++ {
+		reply[i] = 0
+	}
+	binary.LittleEndian.PutUint32(reply[nplHeaderLen+nphHeaderLen:], result)
+	binary.LittleEndian.PutUint16(reply[2:], uint16(ndtpResultLen-nplHeaderLen))
+	crc := crc16(reply[nplHeaderLen:])
+	binary.BigEndian.PutUint16(reply[6:], crc)
+	return reply
+}
+
+func Change(packet []byte, changes map[string]int) []byte {
+	if nplReqID, ok := changes[NplReqID]; ok {
+		binary.LittleEndian.PutUint16(packet[13:], uint16(nplReqID))
+	}
+	if nphReqID, ok := changes[NphReqID]; ok {
+		binary.LittleEndian.PutUint32(packet[nplHeaderLen+6:], uint32(nphReqID))
+	}
+	if packetType, ok := changes[PacketType]; ok {
+		binary.LittleEndian.PutUint16(packet[nplHeaderLen+2:], uint16(packetType))
+	}
+	crc := crc16(packet[nplHeaderLen:])
+	binary.BigEndian.PutUint16(packet[6:], crc)
+	return packet
+}
+
 func maybeSetRealTime(gen general.Subrecord, t string) {
 	v, ok := gen.(*general.NavData)
 	if t == NphSndRealtime && ok {
-		//gen.(*general.NavData).RealTime = true
 		v.RealTime = true
 	}
 }

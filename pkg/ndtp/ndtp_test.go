@@ -14,11 +14,11 @@ func TestNDTP_Parse(t *testing.T) {
 		wantErr     bool
 	}{
 		{"navigation", packetNav(), []byte{1, 2, 3}, ndtpNav(), false},
-		{"extTitle", packetExtTitle(), nil, ndtpExtTitle(), false},
-		{"extResult", packetExtResult(), nil, ndtpExtResult(), false},
+		{"extTitle", packetExtTitle(), []byte{}, ndtpExtTitle(), false},
+		{"extResult", packetExtResult(), []byte{}, ndtpExtResult(), false},
 		{"incorrectCS", ndtpIncorrectCS(), nil, new(Packet), true},
 		{"shortPacket", ndtpShort(), nil, new(Packet), true},
-		{"shortVeryPacket", ndtpVeryShort(), nil, new(Packet), true},
+		{"veryShortPacket", ndtpVeryShort(), nil, new(Packet), true},
 		{"signatureNotFound", ndtpWithoutSignature(), nil, new(Packet), true},
 
 		{"fuel8", packetFuel8(), []byte{1, 2, 3}, ndtpFuel8(), false},
@@ -294,5 +294,3 @@ func ndtpNavFuel8And10Several() *Packet {
 		10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 	return &Packet{&npl, &nph, packExpected}
 }
-
-//NPL: {DataType:2 PeerAddress:[0 0 0 0] ReqID:0}; NPH: {ServiceID:1 PacketType:101 RequestFlag:true ReqID:5291 Data:[0xc0000581e0]}; Data: [ &{Time:1522961700 Lon:37.6925783 Lat:55.7890249 Bearing:339 Speed:0 Sos:false Lohs:1 Lahs:1 Valid:true} ]; [126 126 74 0 2 0 107 210 2 0 0 0 0 0 0 1 0 101 0 1 0 171 20 0 0 0 0 36 141 198 90 87 110 119 22 201 186 64 33 224 203 0 0 0 0 83 1 0 0 220 0 4 0 2 0 22 0 67 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 167 97 0 0 31 6 0 0 8 0 2 0 0 0 0 0]

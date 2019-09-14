@@ -47,7 +47,7 @@ func (subData *SubRecord) parse(service byte, buff []byte) []byte {
 	subData.Type = buff[0]
 	srl := binary.LittleEndian.Uint16(buff[1:3])
 	subEnd := 3 + srl
-	if subData.Type == egtsPtResponse {
+	if subData.Type == EgtsPtResponse {
 		subData.parseResponce(buff[3:subEnd])
 	}
 	if service == EgtsTeledataService {
