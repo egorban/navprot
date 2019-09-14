@@ -7,7 +7,7 @@ import (
 	"fmt"
 )
 
-// NplData describes transport layer of NDPT protocol
+// NplData describes transport layer of NDTP protocol
 type NplData struct {
 	PeerAddress []byte
 	DataType    byte
@@ -22,37 +22,54 @@ func (npl *NplData) String() string {
 }
 
 func parseNPL(message []byte) (npl *NplData, packet, restBuf []byte, err error) {
-	index := bytes.Index(message, nplSignature)
-	if index == -1 {
+	first, last, restBuf, err := checkPacket(message)
+	if err != nil {
+		return
+	}
+	npl = new(NplData)
+	npl.DataType = message[first+8]
+	npl.ReqID = binary.LittleEndian.Uint16(message[first+13 : first+15])
+	npl.PeerAddress = message[first+9 : first+13]
+	packet = message[first:last]
+	return
+}
+
+func simpleParseNPL(message []byte) (packet []byte, restBuf []byte, err error) {
+	first, last, restBuf, err := checkPacket(message)
+	if err != nil {
+		restBuf = message
+		return
+	}
+	return message[first:last], message[last:], nil
+}
+
+func checkPacket(message []byte) (first, last int, rest []byte, err error){
+	first = bytes.Index(message, nplSignature)
+	if first == -1 {
 		err = errors.New("nplData signature not found")
 		return
 	}
-	messageLen := len(message) - index
+	messageLen := len(message) - first
 	if messageLen < nplHeaderLen {
-		restBuf = append([]byte(nil), message...)
 		err = errors.New("messageLen is too short")
+		rest = message[first:]
 		return
 	}
-	dataLen := int(binary.LittleEndian.Uint16(message[index+2 : index+4]))
+	dataLen := int(binary.LittleEndian.Uint16(message[first+2 : first+4]))
 	if messageLen < nplHeaderLen+dataLen {
-		restBuf = append([]byte(nil), message...)
 		err = errors.New("messageLen is too short")
+		rest = message[first:]
 		return
 	}
-	packetLen := index + nplHeaderLen + dataLen
-	if binary.LittleEndian.Uint16(message[index+4:index+6])&2 != 0 {
-		crcHead := binary.BigEndian.Uint16(message[index+6 : index+8])
-		crcCalc := crc16(message[index+nplHeaderLen : packetLen])
+	last = first + nplHeaderLen + dataLen
+	if binary.LittleEndian.Uint16(message[first+4:first+6])&2 != 0 {
+		crcHead := binary.BigEndian.Uint16(message[first+6 : first+8])
+		crcCalc := crc16(message[first+nplHeaderLen : last])
 		if crcHead != crcCalc {
 			err = fmt.Errorf("crc incorrect: calc %d; receive: %d", crcCalc, crcHead)
 			return
 		}
 	}
-	npl = new(NplData)
-	npl.DataType = message[index+8]
-	npl.ReqID = binary.LittleEndian.Uint16(message[index+13 : index+15])
-	npl.PeerAddress = message[index+9 : index+13]
-	packet = message[index:packetLen]
-	restBuf = append([]byte(nil), message[packetLen:]...)
+	rest = message[last:]
 	return
 }
