@@ -151,7 +151,7 @@ func (packetData *Packet) ReplyExt(result uint32) ([]byte, error) {
 	return nil, errors.New("incorrect packet service")
 }
 
-// Change changes values of some fields in NDTP packet
+// ChangePacket changes values of specified fields of NDTP packet
 func (packetData *Packet) ChangePacket(changes map[string]int) {
 	packetData.Packet = Change(packetData.Packet, changes)
 }
@@ -171,18 +171,20 @@ func (packetData *Packet) ToGeneral() (subrecords []general.Subrecord, err error
 }
 
 // SimpleParse check if packet is correct and return it's service
-func SimpleParse(buff []byte) (packet, rest []byte, service uint16, nphID uint32, err error) {
+func SimpleParse(buff []byte) (packet, rest []byte, service, packetType uint16, nphID uint32, err error) {
 	packet, rest, err = simpleParseNPL(buff)
 	if err != nil {
 		return
 	}
 	if len(packet) > nplHeaderLen + 10 {
 		service = binary.LittleEndian.Uint16(packet[nplHeaderLen:nplHeaderLen+2])
+		packetType = binary.LittleEndian.Uint16(packet[nplHeaderLen+2:nplHeaderLen+4])
 		nphID = binary.LittleEndian.Uint32(packet[nplHeaderLen+6:nplHeaderLen+10])
 	}
 	return
 }
 
+// MakeReply create reply packet for custom packet
 func MakeReply(packet []byte, result uint32) []byte {
 	reply := make([]byte, ndtpResultLen)
 	copy(reply,packet[:nplHeaderLen+nphHeaderLen])
@@ -196,6 +198,7 @@ func MakeReply(packet []byte, result uint32) []byte {
 	return reply
 }
 
+// Change changes values of specified fields of NDTP packet
 func Change(packet []byte, changes map[string]int) []byte {
 	if nplReqID, ok := changes[NplReqID]; ok {
 		binary.LittleEndian.PutUint16(packet[13:], uint16(nplReqID))
@@ -209,6 +212,14 @@ func Change(packet []byte, changes map[string]int) []byte {
 	crc := crc16(packet[nplHeaderLen:])
 	binary.BigEndian.PutUint16(packet[6:], crc)
 	return packet
+}
+
+// Service return value of packet service
+func Service(packet []byte) (uint16, error) {
+	if len(packet) >= nplHeaderLen+nphHeaderLen {
+		return binary.LittleEndian.Uint16(packet[nplHeaderLen:nplHeaderLen+2]), nil
+	}
+	return 0, fmt.Errorf("to short packet")
 }
 
 func maybeSetRealTime(gen general.Subrecord, t string) {
