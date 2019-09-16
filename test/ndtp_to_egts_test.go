@@ -15,6 +15,13 @@ type args struct {
 	recID  uint16
 }
 
+type argsBin struct {
+	packet []byte
+	id     uint32
+	packID uint16
+	recID  uint16
+}
+
 func TestNDTPtoEGTS(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -39,6 +46,73 @@ func TestNDTPtoEGTS(t *testing.T) {
 		})
 	}
 }
+
+func TestNDTPtoEGTSBin(t *testing.T) {
+	tests := []struct {
+		name     string
+		args     argsBin
+		wantEgts []byte
+		wantErr  bool
+	}{
+		{name: "navData", args: ndtpNavArgsBin(), wantEgts: egtsNavBin(), wantErr: false},
+		//{name: "fuelData", args: fuelArgs(), wantEgts: egtsFuelPacket(), wantErr: false},
+		//{name: "navAndFuelData", args: navAndFlueArgs(), wantEgts: egtsNavAndFuelPacket(), wantErr: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ndtpData := new(ndtp.Packet)
+			_, err := ndtpData.Parse(tt.args.packet)
+			//fmt.Printf("parsed NDTP: %v\n", ndtpData)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ndtpData.parse() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			egtsData, err := convertation.ToEGTS(ndtpData, tt.args.id, tt.args.packID, tt.args.recID)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("convertation.ToEGTS() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			} else if err != nil {
+				return
+			}
+			res, err := egtsData.Form()
+			//e := new(egts.Packet)
+			//_, err = e.Parse(res)
+			//fmt.Printf("parsed NDTP: %v, %v\n", err, e)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("egtsData.Form() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(tt.wantEgts, res) {
+				t.Error("got:      ", res, "\nexpected: ", tt.wantEgts)
+			}
+		})
+	}
+}
+
+
+func ndtpNavArgsBin() argsBin {
+	return argsBin{
+		packet: ndtpNavBin(),
+		id:     0,
+		packID: 0,
+		recID:  0,
+	}
+}
+
+func ndtpNavBin() []byte {
+	return []byte{0, 80, 86, 161, 44, 216, 192, 140, 96, 196, 138, 54, 8, 0, 69, 0, 0, 129, 102, 160, 64, 0, 125, 6,
+		18, 51, 10, 68, 41, 150, 10, 176, 70, 26, 236, 153, 35, 56, 151, 147, 73, 96, 98, 94, 76, 40, 80,
+		24, 1, 2, 190, 27, 0, 0, 126, 126, 74, 0, 2, 0, 107, 210, 2, 0, 0, 0, 0, 0, 0, 1, 0, 101, 0, 1, 0, 171,
+		20, 0, 0, 0, 0, 36, 141, 198, 90, 87, 110, 119, 22, 201, 186, 64, 33, 224, 203, 0, 0, 0, 0, 83, 1, 0,
+		0, 220, 0, 4, 0, 2, 0, 22, 0, 67, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 167, 97, 0, 0, 31, 6, 0, 0, 8,
+		0, 2, 0, 0, 0, 0, 0, 1, 2, 3}
+}
+
+func egtsNavBin() []byte {
+	return []byte{1, 0, 0, 11, 0, 45, 0, 0, 0, 1, 47, 34, 0, 0, 0, 1, 0, 0, 0, 0, 2, 2, 16, 21, 0, 36, 82, 137, 15, 2,
+		84, 176, 158, 238, 114, 155, 53, 11, 0, 128, 83, 0, 0, 0, 0, 0, 27, 7, 0, 64, 0, 0, 0, 0, 0, 0, 32, 104}
+}
+
 
 func navArgs() args {
 	return args{
