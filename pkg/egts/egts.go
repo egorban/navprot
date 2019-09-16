@@ -21,8 +21,6 @@ const (
 	EgtsPtAppdata = 1
 	// EgtsTeledataService defines EGTS_TELEDATA_SERVICE
 	EgtsTeledataService = 2
-	// EgtsPtResponse defines response subrecord
-	EgtsPtResponse = 0
 	// EgtsSrPosData defines EGTS_SR_POS_DATA subrecord
 	EgtsSrPosData = 16
 	// EgtsSrLiquidLevelSensor defines EGTS_SR_LIQUID_LEVEL_SENSOR subrecord
