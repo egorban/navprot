@@ -115,7 +115,7 @@ func egtsRes() *Packet {
 	}
 	return &Packet{
 		Type:    0,
-		ID:      0,
+		ID:      6,
 		Records: []*Record{&rec},
 		Data:    &data,
 	}
