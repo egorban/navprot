@@ -366,3 +366,24 @@ func wantNavAndFuelData() []byte {
 		27, 7, 0, 32, 0, 0, 20, 0, 0, 0,
 		148, 199}
 }
+
+func TestPacket_String(t *testing.T) {
+	tests := []struct {
+		name       string
+		packetData *Packet
+		want       string
+	}{
+		{name: "egts", packetData: egtsPosAndFuelData(), want: wantEgtsString()},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.packetData.String(); got != tt.want {
+				t.Errorf("String() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func wantEgtsString() string {
+	return "Header: {PacketType:1; ID:0}; Records: {RecHeader: {Service:2; ID:239; RecNum:0}, [{SubType: 16,{Lon:37.782409656276556 Lat:55.62752532903746 Time:271266258 Bearing:178 Speed:0 Lohs:0 Lahs:0 Mv:0 RealTime:0 Valid:1 Source:0}}{SubType: 27,{Type:2 Fuel:2}}]}"
+}
