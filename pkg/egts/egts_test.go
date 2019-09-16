@@ -115,7 +115,7 @@ func egtsRes() *Packet {
 	}
 	return &Packet{
 		Type:    0,
-		ID:      0,
+		ID:      6,
 		Records: []*Record{&rec},
 		Data:    &data,
 	}
@@ -214,6 +214,7 @@ func TestPacket_Form(t *testing.T) {
 		{name: "navData", packetData: navPacket(), wantData: wantNavData(), wantErr: false},
 		{name: "fuelData", packetData: fuelPacket(), wantData: wantFuelData(), wantErr: false},
 		{name: "navAndFuelData", packetData: navAndFuelPacket(), wantData: wantNavAndFuelData(), wantErr: false},
+		{name: "response", packetData: responsePacket(), wantData: wantResponseData(), wantErr: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -227,6 +228,37 @@ func TestPacket_Form(t *testing.T) {
 			}
 		})
 	}
+}
+
+func responsePacket() *Packet {
+	data := Response{
+		RPID:    6,
+		ProcRes: 0,
+	}
+	subData := Confirmation{
+		CRN: 5,
+		RST: 0,
+	}
+	sub := SubRecord{
+		Type: EgtsSrResponse,
+		Data: &subData,
+	}
+	rec := Record{
+		RecNum:  0,
+		ID:      0,
+		Service: EgtsTeledataService,
+		Data:    []*SubRecord{&sub},
+	}
+	return &Packet{
+		Type:    0,
+		ID:      0,
+		Records: []*Record{&rec},
+		Data:    &data,
+	}
+}
+
+func wantResponseData() []byte {
+	return []byte{1, 0, 3, 11, 0, 16, 0, 0, 0, 0, 179, 6, 0, 0, 6, 0, 0, 0, 24, 2, 2, 0, 3, 0, 5, 0, 0, 188, 181}
 }
 
 func navPacket() *Packet {
@@ -333,4 +365,25 @@ func wantNavAndFuelData() []byte {
 		16, 21, 0, 210, 49, 43, 16, 79, 186, 58, 158, 210, 39, 188, 53, 3, 0, 0, 178, 0, 0, 0, 0, 0,
 		27, 7, 0, 32, 0, 0, 20, 0, 0, 0,
 		148, 199}
+}
+
+func TestPacket_String(t *testing.T) {
+	tests := []struct {
+		name       string
+		packetData *Packet
+		want       string
+	}{
+		{name: "egts", packetData: egtsPosAndFuelData(), want: wantEgtsString()},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.packetData.String(); got != tt.want {
+				t.Errorf("String() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func wantEgtsString() string {
+	return "Header: {PacketType:1; ID:0}; Records: {RecHeader: {Service:2; ID:239; RecNum:0}, [{SubType: 16,{Lon:37.782409656276556 Lat:55.62752532903746 Time:271266258 Bearing:178 Speed:0 Lohs:0 Lahs:0 Mv:0 RealTime:0 Valid:1 Source:0}}{SubType: 27,{Type:2 Fuel:2}}]}"
 }
