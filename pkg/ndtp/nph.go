@@ -102,7 +102,7 @@ func (nph *Nph) parse(message []byte) (err error) {
 
 func (nph *Nph) parseNavData(message []byte) (err error) {
 	cellStart := 0
-	allData := make([]interface{}, 0, 1)
+	allData := make([]Subrecord, 0, 1)
 	for cellStart < len(message) {
 		cellType := message[cellStart]
 		switch cellType {
@@ -171,9 +171,9 @@ func sData(data interface{}) (sdata string) {
 	case *ExtDevice:
 		ext := data.(*ExtDevice)
 		sdata = fmt.Sprintf("%+v", *ext)
-	case []interface{}:
+	case []Subrecord:
 		tmp := "["
-		for _, e := range data.([]interface{}) {
+		for _, e := range data.([]Subrecord) {
 			tmp = tmp + fmt.Sprintf(" %+v", e)
 		}
 		sdata = sdata + tmp + " ]"

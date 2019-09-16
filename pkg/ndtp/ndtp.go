@@ -158,8 +158,15 @@ func (packetData *Packet) ChangePacket(changes map[string]int) {
 
 // ToGeneral form general subrecords from NDTP packet
 func (packetData *Packet) ToGeneral() (subrecords []general.Subrecord, err error) {
+	//fmt.Printf("packetData: %v\n", packetData)
+	//fmt.Printf("packetData.Nph.Data: %v\n", packetData.Nph.Data)
 	if packetData.Service() == NphSrvNavdata {
-		for _, sub := range packetData.Nph.Data.([]Subrecord) { //TODO fix type assertion
+		subs, ok := packetData.Nph.Data.([]Subrecord)
+		if !ok {
+			err = errors.New("can't convert Nph.Data to []Subrecord")
+			return
+		}
+		for _, sub := range subs {
 			gen := sub.toGeneral()
 			maybeSetRealTime(gen, packetData.PacketType())
 			subrecords = append(subrecords, gen)

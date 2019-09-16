@@ -90,7 +90,7 @@ func packetExtResult() []byte {
 }
 
 func ndtpNav() *Packet {
-	data := []interface{}{&NavData{1522961700, 37.6925783, 55.7890249, 339, 0, false, 1, 1, true},
+	data := []Subrecord{&NavData{1522961700, 37.6925783, 55.7890249, 339, 0, false, 1, 1, true},
 		&FuelData{255, 0}}
 	nph := Nph{1, 101, true, 5291, data}
 	npl := NplData{make([]byte, 4), 0x02, 0x00}
@@ -147,7 +147,7 @@ func packetFuel8() []byte {
 }
 
 func ndtpFuel8() *Packet {
-	data := []interface{}{&FuelData{0, 10}}
+	data := []Subrecord{&FuelData{0, 10}}
 	nph := Nph{1, 101, true, 5291, data}
 	npl := NplData{make([]byte, 4), 0x02, 0x00}
 	packExpected := []byte{126, 126, 18, 0, 2, 0, 239, 117, 2, 0, 0, 0, 0, 0, 0,
@@ -167,7 +167,7 @@ func packetFuel8Several() []byte {
 }
 
 func ndtpFuel8Several() *Packet {
-	data := []interface{}{&FuelData{0, 10},
+	data := []Subrecord{&FuelData{0, 10},
 		&FuelData{2, 20},
 		&FuelData{2, 50}}
 	nph := Nph{1, 101, true, 5291, data}
@@ -190,7 +190,7 @@ func packetFuel10() []byte {
 }
 
 func ndtpFuel10() *Packet {
-	data := []interface{}{&FuelData{1, 10}}
+	data := []Subrecord{&FuelData{1, 10}}
 	nph := Nph{1, 101, true, 5291, data}
 	npl := NplData{make([]byte, 4), 0x02, 0x00}
 	packExpected := []byte{126, 126, 49, 0, 2, 0, 180, 85, 2, 0, 0, 0, 0, 0, 0,
@@ -211,7 +211,7 @@ func packetFuel10Several() []byte {
 }
 
 func ndtpFuel10Several() *Packet {
-	data := []interface{}{&FuelData{1, 10},
+	data := []Subrecord{&FuelData{1, 10},
 		&FuelData{2, 20},
 		&FuelData{1, 50}}
 	nph := Nph{1, 101, true, 5291, data}
@@ -239,7 +239,7 @@ func packetFuel8And10Several() []byte {
 }
 
 func ndtpFuel8And10Several() *Packet {
-	data := []interface{}{&FuelData{0, 10},
+	data := []Subrecord{&FuelData{0, 10},
 		&FuelData{2, 20},
 		&FuelData{2, 50},
 		&FuelData{1, 10},
@@ -274,7 +274,7 @@ func packetNavFuel8And10Several() []byte {
 }
 
 func ndtpNavFuel8And10Several() *Packet {
-	data := []interface{}{&NavData{1522961700, 37.6925783, 55.7890249, 339, 0, false, 1, 1, true},
+	data := []Subrecord{&NavData{1522961700, 37.6925783, 55.7890249, 339, 0, false, 1, 1, true},
 		&FuelData{0, 10},
 		&FuelData{2, 20},
 		&FuelData{2, 50},
@@ -293,4 +293,74 @@ func ndtpNavFuel8And10Several() *Packet {
 		10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 		10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 	return &Packet{&npl, &nph, packExpected}
+}
+
+func TestSimpleParse(t *testing.T) {
+	tests := []struct {
+		name           string
+		buff           []byte
+		wantPacket     []byte
+		wantRest       []byte
+		wantService    uint16
+		wantPacketType uint16
+		wantNphID      uint32
+		wantErr        bool
+	}{
+		//{"navigation", packetNav(), []byte{1, 2, 3}, ndtpNav(), false},
+		{"navigation", packetNav(),
+			[]byte{126, 126, 74, 0, 2, 0, 107, 210, 2, 0, 0, 0, 0, 0, 0, 1, 0, 101, 0, 1, 0, 171,
+				20, 0, 0, 0, 0, 36, 141, 198, 90, 87, 110, 119, 22, 201, 186, 64, 33, 224, 203, 0, 0, 0, 0, 83, 1, 0,
+				0, 220, 0, 4, 0, 2, 0, 22, 0, 67, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 167, 97, 0, 0, 31, 6, 0, 0, 8,
+				0, 2, 0, 0, 0, 0, 0},
+			[]byte{1, 2, 3}, 1, 101, 5291, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotPacket, gotRest, gotService, gotPacketType, gotNphID, err := SimpleParse(tt.buff)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SimpleParse() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(gotPacket, tt.wantPacket) {
+				t.Errorf("SimpleParse() gotPacket = %v, want %v", gotPacket, tt.wantPacket)
+			}
+			if !reflect.DeepEqual(gotRest, tt.wantRest) {
+				t.Errorf("SimpleParse() gotRest = %v, want %v", gotRest, tt.wantRest)
+			}
+			if gotService != tt.wantService {
+				t.Errorf("SimpleParse() gotService = %v, want %v", gotService, tt.wantService)
+			}
+			if gotPacketType != tt.wantPacketType {
+				t.Errorf("SimpleParse() gotPacketType = %v, want %v", gotPacketType, tt.wantPacketType)
+			}
+			if gotNphID != tt.wantNphID {
+				t.Errorf("SimpleParse() gotNphID = %v, want %v", gotNphID, tt.wantNphID)
+			}
+		})
+	}
+}
+
+func TestMakeReply(t *testing.T) {
+	type args struct {
+		packet []byte
+		result uint32
+	}
+	tests := []struct {
+		name string
+		args args
+		want []byte
+	}{
+		{"navigation", args{[]byte{126, 126, 74, 0, 2, 0, 107, 210, 2, 0, 0, 0, 0, 0, 0, 1, 0, 101, 0, 1, 0, 171,
+			20, 0, 0, 0, 0, 36, 141, 198, 90, 87, 110, 119, 22, 201, 186, 64, 33, 224, 203, 0, 0, 0, 0, 83, 1, 0,
+			0, 220, 0, 4, 0, 2, 0, 22, 0, 67, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 167, 97, 0, 0, 31, 6, 0, 0, 8,
+			0, 2, 0, 0, 0, 0, 0}, 0}, []byte{126, 126, 14, 0, 2, 0, 10, 180, 2, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 171,
+			20, 0, 0, 0, 0, 0, 0}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := MakeReply(tt.args.packet, tt.args.result); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("MakeReply() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }
