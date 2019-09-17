@@ -15,16 +15,18 @@ const (
 	egtsSubrecDataLen     = 21
 	egtsSubrecFuelDataLen = 7
 
+	// EgtsPtResponse defines EGTS_PT_RESPONSE packet type
+	EgtsPtResponse = 0
 	// EgtsPtAppdata defines EGTS_PT_APPDATA packet type
 	EgtsPtAppdata = 1
 	// EgtsTeledataService defines EGTS_TELEDATA_SERVICE
 	EgtsTeledataService = 2
-	// EgtsPtResponse defines response subrecord
-	EgtsPtResponse = 0
 	// EgtsSrPosData defines EGTS_SR_POS_DATA subrecord
 	EgtsSrPosData = 16
 	// EgtsSrLiquidLevelSensor defines EGTS_SR_LIQUID_LEVEL_SENSOR subrecord
 	EgtsSrLiquidLevelSensor = 27
+	// EgtsSrResponse defines EGTS_SR_RECORD_RESPONSE subrecord
+	EgtsSrResponse = 0
 	// Timestamp20100101utc is EGTS initial time
 	Timestamp20100101utc = 1262304000
 	// Success status
@@ -73,6 +75,9 @@ func (packetData *Packet) Parse(message []byte) (restBuf []byte, err error) {
 func (packetData *Packet) Form() (data []byte, err error) {
 	data, err = formData(packetData)
 	header := []byte{0x01, 0x00, 0x00, byte(minEgtsHeaderLen), 0x00, 0x00, 0x00, 0x00, 0x00, packetData.Type}
+	if packetData.Type == EgtsPtResponse {
+		header[2] = 0x03
+	}
 	binary.LittleEndian.PutUint16(header[5:7], uint16(len(data)))
 	binary.LittleEndian.PutUint16(header[7:9], packetData.ID)
 	crcPacket := crc8EGTS(header)
@@ -88,6 +93,8 @@ func formData(packetData *Packet) (data []byte, err error) {
 	switch packetData.Type {
 	case EgtsPtAppdata:
 		data, err = packetData.formAppData()
+	case EgtsPtResponse:
+		data, err = packetData.formResponse()
 	default:
 		err = fmt.Errorf("data type %d not implemented", packetData.Type)
 	}
@@ -117,6 +124,19 @@ func (packetData *Packet) formAppData() ([]byte, error) {
 	var packet []byte
 	for _, rec := range packetData.Records {
 		recBin, err := rec.form()
+		if err != nil {
+			return nil, err
+		}
+		packet = append(packet, recBin...)
+	}
+	return packet, nil
+}
+
+func (packetData *Packet) formResponse() ([]byte, error) {
+	packet := make([]byte, 3)
+	binary.LittleEndian.PutUint16(packet[0:2], packetData.Data.(*Response).RPID)
+	for _, rec := range packetData.Records {
+		recBin, err := rec.formResponse()
 		if err != nil {
 			return nil, err
 		}

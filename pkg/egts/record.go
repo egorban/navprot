@@ -32,6 +32,20 @@ func (recData *Record) form() (record []byte, err error) {
 	return record, nil
 }
 
+func (recData *Record) formResponse() (record []byte, err error) {
+	subrec, err := recData.formSubrecords()
+	if err != nil {
+		return nil, err
+	}
+	headerRec := make([]byte, 5)
+	binary.LittleEndian.PutUint16(headerRec[0:2], uint16(len(subrec)))
+	binary.LittleEndian.PutUint16(headerRec[2:4], recData.RecNum)
+	headerRec[4] = 0x18
+	headerRec = append(headerRec, recData.Service, recData.Service)
+	record = append(headerRec, subrec...)
+	return record, nil
+}
+
 func (recData *Record) parseRecord(body []byte) []byte {
 	dataLen := binary.LittleEndian.Uint16(body[:2])
 	recData.RecNum = binary.LittleEndian.Uint16(body[2:4])
