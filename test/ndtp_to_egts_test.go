@@ -89,7 +89,6 @@ func TestNDTPtoEGTSBin(t *testing.T) {
 	}
 }
 
-
 func ndtpNavArgsBin() argsBin {
 	return argsBin{
 		packet: ndtpNavBin(),
@@ -110,9 +109,8 @@ func ndtpNavBin() []byte {
 
 func egtsNavBin() []byte {
 	return []byte{1, 0, 0, 11, 0, 45, 0, 0, 0, 1, 47, 34, 0, 0, 0, 1, 0, 0, 0, 0, 2, 2, 16, 21, 0, 36, 82, 137, 15, 2,
-		84, 176, 158, 238, 114, 155, 53, 11, 0, 128, 83, 0, 0, 0, 0, 0, 27, 7, 0, 64, 0, 0, 0, 0, 0, 0, 32, 104}
+		84, 176, 158, 238, 114, 155, 53, 11, 0, 128, 83, 0, 0, 0, 0, 0, 27, 7, 0, 66, 1, 0, 0, 0, 0, 0, 99, 77}
 }
-
 
 func navArgs() args {
 	return args{
