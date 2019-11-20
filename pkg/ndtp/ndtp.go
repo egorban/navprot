@@ -219,7 +219,7 @@ func Change(packet []byte, changes map[string]int) []byte {
 		binary.LittleEndian.PutUint16(packet[nplHeaderLen+2:], uint16(packetType))
 	}
 	if peerAddress, ok := changes[PeerAddress]; ok {
-    	binary.LittleEndian.PutUint32(packet[nplHeaderLen+16:], uint32(peerAddress))
+    	binary.LittleEndian.PutUint32(packet[nplHeaderLen+nphHeaderLen+6:], uint32(peerAddress))
     }
 	crc := crc16(packet[nplHeaderLen:])
 	binary.BigEndian.PutUint16(packet[6:], crc)
