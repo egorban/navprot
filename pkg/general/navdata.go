@@ -1,7 +1,7 @@
 package general
 
 import (
-	"github.com/ashirko/navprot/pkg/egts"
+	"github.com/egorban/navprot/pkg/egts"
 )
 
 // NavData is a general type for storing navigation information
