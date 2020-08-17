@@ -80,6 +80,8 @@ const (
 
 	// NphResultOk means request was successfully completed
 	NphResultOk = 0
+	// PeerAddress defines NPH peer_address field for NPH_SGC_CONN_REQUEST
+	PeerAddress = "PeerAddress"
 )
 
 // Parse NDTP packet. Parsed information is stored in variable with NDTP type.
