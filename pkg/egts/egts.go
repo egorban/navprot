@@ -120,16 +120,20 @@ func (packetData *Packet) parseAppData(body []byte) {
 	packetData.Records = parseRecords(body)
 }
 
-func (packetData *Packet) formAppData() ([]byte, error) {
-	var packet []byte
+func (packetData *Packet) formAppData() (packet []byte, err error) {
+	var recBin []byte
 	for _, rec := range packetData.Records {
-		recBin, err := rec.form()
-		if err != nil {
-			return nil, err
+		if len(rec.RecBin) > 0 {
+			recBin = rec.RecBin
+		} else {
+			recBin, err = rec.form()
+			if err != nil {
+				return //nil, err
+			}
 		}
 		packet = append(packet, recBin...)
 	}
-	return packet, nil
+	return //packet, nil
 }
 
 func (packetData *Packet) formResponse() ([]byte, error) {

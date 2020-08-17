@@ -15,6 +15,8 @@ type Record struct {
 	RecNum uint16
 	// Source Service Type
 	Service byte
+	//Binary record
+	RecBin []byte
 }
 
 func (recData *Record) form() (record []byte, err error) {
@@ -61,6 +63,7 @@ func (recData *Record) parseRecord(body []byte) []byte {
 	recData.Service = body[5+optLen]
 	sub := body[headerLen:recordLen]
 	recData.parseSubRecords(sub)
+	recData.RecBin = body[:recordLen]
 	return body[recordLen:]
 }
 

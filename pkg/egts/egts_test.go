@@ -112,6 +112,7 @@ func egtsRes() *Packet {
 		ID:      0,
 		Service: 2,
 		Data:    []*SubRecord{&sub},
+		RecBin:  []byte{6, 0, 6, 0, 24, 2, 2, 0, 3, 0, 6, 0, 0},
 	}
 	return &Packet{
 		Type:    0,
@@ -138,6 +139,8 @@ func egtsPosData() *Packet {
 		ID:      239,
 		Service: EgtsTeledataService,
 		Data:    []*SubRecord{&sub},
+		RecBin: []byte{24, 0, 0, 0, 1, 239, 0, 0, 0, 2, 2,
+			16, 21, 0, 210, 49, 43, 16, 79, 186, 58, 158, 210, 39, 188, 53, 3, 0, 0, 178, 0, 0, 0, 0, 0},
 	}
 	return &Packet{
 		Type:    EgtsPtAppdata,
@@ -161,6 +164,8 @@ func egtsFuelData() *Packet {
 		ID:      239,
 		Service: EgtsTeledataService,
 		Data:    []*SubRecord{&sub},
+		RecBin: []byte{10, 0, 0, 0, 1, 239, 0, 0, 0, 2, 2,
+			27, 7, 0, 32, 0, 0, 20, 0, 0, 0},
 	}
 	return &Packet{
 		Type:    EgtsPtAppdata,
@@ -195,6 +200,9 @@ func egtsPosAndFuelData() *Packet {
 		ID:      239,
 		Service: EgtsTeledataService,
 		Data:    []*SubRecord{&subPos, &subFuel},
+		RecBin: []byte{34, 0, 0, 0, 1, 239, 0, 0, 0, 2, 2,
+			16, 21, 0, 210, 49, 43, 16, 79, 186, 58, 158, 210, 39, 188, 53, 3, 0, 0, 178, 0, 0, 0, 0, 0,
+			27, 7, 0, 32, 0, 0, 20, 0, 0, 0},
 	}
 	return &Packet{
 		Type:    EgtsPtAppdata,
@@ -211,6 +219,7 @@ func TestPacket_Form(t *testing.T) {
 		wantData   []byte
 		wantErr    bool
 	}{
+		{name: "navAndFuelDataRecBin", packetData: navAndFuelDataRecBinPacket(), wantData: wantNavAndFuelRecBinData(), wantErr: false},
 		{name: "navData", packetData: navPacket(), wantData: wantNavData(), wantErr: false},
 		{name: "fuelData", packetData: fuelPacket(), wantData: wantFuelData(), wantErr: false},
 		{name: "navAndFuelData", packetData: navAndFuelPacket(), wantData: wantNavAndFuelData(), wantErr: false},
@@ -292,6 +301,20 @@ func wantNavData() []byte {
 		16, 21, 0, 210, 49, 43, 16, 79, 186, 58, 158, 210, 39, 188, 53, 3, 0, 0, 178, 0, 0, 0, 0, 0, 106, 141}
 }
 
+func navAndFuelDataRecBinPacket() *Packet {
+	rec := &Record{
+		RecBin: []byte{34, 0, 0, 0, 1, 239, 0, 0, 0, 2, 2,
+			16, 21, 0, 210, 49, 43, 16, 79, 186, 58, 158, 210, 39, 188, 53, 3, 0, 0, 178, 0, 0, 0, 0, 0,
+			27, 7, 0, 34, 1, 0, 20, 0, 0, 0},
+	}
+	return &Packet{
+		Type:    EgtsPtAppdata,
+		ID:      0,
+		Records: []*Record{rec},
+		Data:    nil,
+	}
+}
+
 func fuelPacket() *Packet {
 	fuelData := &FuelData{
 		Type: 2,
@@ -360,6 +383,14 @@ func navAndFuelPacket() *Packet {
 }
 
 func wantNavAndFuelData() []byte {
+	return []byte{1, 0, 0, 11, 0, 45, 0, 0, 0, 1, 47,
+		34, 0, 0, 0, 1, 239, 0, 0, 0, 2, 2,
+		16, 21, 0, 210, 49, 43, 16, 79, 186, 58, 158, 210, 39, 188, 53, 3, 0, 0, 178, 0, 0, 0, 0, 0,
+		27, 7, 0, 34, 1, 0, 20, 0, 0, 0,
+		215, 226}
+}
+
+func wantNavAndFuelRecBinData() []byte {
 	return []byte{1, 0, 0, 11, 0, 45, 0, 0, 0, 1, 47,
 		34, 0, 0, 0, 1, 239, 0, 0, 0, 2, 2,
 		16, 21, 0, 210, 49, 43, 16, 79, 186, 58, 158, 210, 39, 188, 53, 3, 0, 0, 178, 0, 0, 0, 0, 0,
