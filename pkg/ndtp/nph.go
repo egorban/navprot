@@ -4,7 +4,8 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/ashirko/navprot/pkg/general"
+
+	"github.com/egorban/navprot/pkg/general"
 )
 
 var nplSignature = []byte{0x7E, 0x7E}

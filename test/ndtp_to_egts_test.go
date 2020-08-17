@@ -1,11 +1,12 @@
 package test
 
 import (
-	"github.com/ashirko/navprot/pkg/convertation"
-	"github.com/ashirko/navprot/pkg/egts"
-	"github.com/ashirko/navprot/pkg/ndtp"
 	"reflect"
 	"testing"
+
+	"github.com/egorban/navprot/pkg/convertation"
+	"github.com/egorban/navprot/pkg/egts"
+	"github.com/egorban/navprot/pkg/ndtp"
 )
 
 type args struct {

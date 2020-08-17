@@ -1,6 +1,6 @@
 package general
 
-import "github.com/ashirko/navprot/pkg/egts"
+import "github.com/egorban/navprot/pkg/egts"
 
 // FuelData is a general type for storing fuel level information
 type FuelData struct {

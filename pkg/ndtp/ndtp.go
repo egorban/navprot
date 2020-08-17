@@ -7,7 +7,8 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/ashirko/navprot/pkg/general"
+
+	"github.com/egorban/navprot/pkg/general"
 )
 
 // Packet contains information about about NDTP (Navigation Data Transfer Protocol) packet
@@ -183,10 +184,10 @@ func SimpleParse(buff []byte) (packet, rest []byte, service, packetType uint16, 
 	if err != nil {
 		return
 	}
-	if len(packet) > nplHeaderLen + 10 {
-		service = binary.LittleEndian.Uint16(packet[nplHeaderLen:nplHeaderLen+2])
-		packetType = binary.LittleEndian.Uint16(packet[nplHeaderLen+2:nplHeaderLen+4])
-		nphID = binary.LittleEndian.Uint32(packet[nplHeaderLen+6:nplHeaderLen+10])
+	if len(packet) > nplHeaderLen+10 {
+		service = binary.LittleEndian.Uint16(packet[nplHeaderLen : nplHeaderLen+2])
+		packetType = binary.LittleEndian.Uint16(packet[nplHeaderLen+2 : nplHeaderLen+4])
+		nphID = binary.LittleEndian.Uint32(packet[nplHeaderLen+6 : nplHeaderLen+10])
 	}
 	return
 }
@@ -194,7 +195,7 @@ func SimpleParse(buff []byte) (packet, rest []byte, service, packetType uint16, 
 // MakeReply create reply packet for custom packet
 func MakeReply(packet []byte, result uint32) []byte {
 	reply := make([]byte, ndtpResultLen)
-	copy(reply,packet[:nplHeaderLen+nphHeaderLen])
+	copy(reply, packet[:nplHeaderLen+nphHeaderLen])
 	for i := nplHeaderLen + 2; i < nplHeaderLen+6; i++ {
 		reply[i] = 0
 	}
@@ -224,7 +225,7 @@ func Change(packet []byte, changes map[string]int) []byte {
 // Service return value of packet service
 func Service(packet []byte) (uint16, error) {
 	if len(packet) >= nplHeaderLen+nphHeaderLen {
-		return binary.LittleEndian.Uint16(packet[nplHeaderLen:nplHeaderLen+2]), nil
+		return binary.LittleEndian.Uint16(packet[nplHeaderLen : nplHeaderLen+2]), nil
 	}
 	return 0, fmt.Errorf("to short packet")
 }

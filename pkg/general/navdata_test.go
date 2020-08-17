@@ -1,9 +1,10 @@
 package general
 
 import (
-	"github.com/ashirko/navprot/pkg/egts"
 	"reflect"
 	"testing"
+
+	"github.com/egorban/navprot/pkg/egts"
 )
 
 func TestNavData_ToEgtsSubrecord(t *testing.T) {

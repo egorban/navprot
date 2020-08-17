@@ -5,8 +5,8 @@ Currently, convertation of general NavPtotocol to EGTS packet is supported.
 package convertation
 
 import (
-	"github.com/ashirko/navprot/pkg/egts"
-	"github.com/ashirko/navprot/pkg/general"
+	"github.com/egorban/navprot/pkg/egts"
+	"github.com/egorban/navprot/pkg/general"
 )
 
 // ToEGTS convert packet implemented NavProtocol iterface to egts.Packet type

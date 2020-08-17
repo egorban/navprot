@@ -2,7 +2,8 @@ package ndtp
 
 import (
 	"encoding/binary"
-	"github.com/ashirko/navprot/pkg/general"
+
+	"github.com/egorban/navprot/pkg/general"
 )
 
 // NavData describes information of NPH_SRV_NAVDATA service
