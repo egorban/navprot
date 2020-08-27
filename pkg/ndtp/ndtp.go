@@ -7,7 +7,8 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/ashirko/navprot/pkg/general"
+
+	"github.com/egorban/navprot/pkg/general"
 )
 
 // Packet contains information about about NDTP (Navigation Data Transfer Protocol) packet
@@ -77,7 +78,7 @@ const (
 	// PacketType defines NPH type field
 	PacketType = "PacketType"
 	// PeerAddress defines NPH peer_address field for NPH_SGC_CONN_REQUEST
-    PeerAddress = "PeerAddress"
+	PeerAddress = "PeerAddress"
 
 	// NphResultOk means request was successfully completed
 	NphResultOk = 0
@@ -185,10 +186,10 @@ func SimpleParse(buff []byte) (packet, rest []byte, service, packetType uint16, 
 	if err != nil {
 		return
 	}
-	if len(packet) > nplHeaderLen + 10 {
-		service = binary.LittleEndian.Uint16(packet[nplHeaderLen:nplHeaderLen+2])
-		packetType = binary.LittleEndian.Uint16(packet[nplHeaderLen+2:nplHeaderLen+4])
-		nphID = binary.LittleEndian.Uint32(packet[nplHeaderLen+6:nplHeaderLen+10])
+	if len(packet) > nplHeaderLen+10 {
+		service = binary.LittleEndian.Uint16(packet[nplHeaderLen : nplHeaderLen+2])
+		packetType = binary.LittleEndian.Uint16(packet[nplHeaderLen+2 : nplHeaderLen+4])
+		nphID = binary.LittleEndian.Uint32(packet[nplHeaderLen+6 : nplHeaderLen+10])
 	}
 	return
 }
@@ -196,7 +197,7 @@ func SimpleParse(buff []byte) (packet, rest []byte, service, packetType uint16, 
 // MakeReply create reply packet for custom packet
 func MakeReply(packet []byte, result uint32) []byte {
 	reply := make([]byte, ndtpResultLen)
-	copy(reply,packet[:nplHeaderLen+nphHeaderLen])
+	copy(reply, packet[:nplHeaderLen+nphHeaderLen])
 	for i := nplHeaderLen + 2; i < nplHeaderLen+6; i++ {
 		reply[i] = 0
 	}
@@ -219,8 +220,8 @@ func Change(packet []byte, changes map[string]int) []byte {
 		binary.LittleEndian.PutUint16(packet[nplHeaderLen+2:], uint16(packetType))
 	}
 	if peerAddress, ok := changes[PeerAddress]; ok {
-    	binary.LittleEndian.PutUint32(packet[nplHeaderLen+nphHeaderLen+6:], uint32(peerAddress))
-    }
+		binary.LittleEndian.PutUint32(packet[nplHeaderLen+nphHeaderLen+6:], uint32(peerAddress))
+	}
 	crc := crc16(packet[nplHeaderLen:])
 	binary.BigEndian.PutUint16(packet[6:], crc)
 	return packet
@@ -229,7 +230,7 @@ func Change(packet []byte, changes map[string]int) []byte {
 // Service return value of packet service
 func Service(packet []byte) (uint16, error) {
 	if len(packet) >= nplHeaderLen+nphHeaderLen {
-		return binary.LittleEndian.Uint16(packet[nplHeaderLen:nplHeaderLen+2]), nil
+		return binary.LittleEndian.Uint16(packet[nplHeaderLen : nplHeaderLen+2]), nil
 	}
 	return 0, fmt.Errorf("to short packet")
 }

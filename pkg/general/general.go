@@ -3,7 +3,7 @@ Package general provides general interfaces ant types for working with telematic
 */
 package general
 
-import "github.com/ashirko/navprot/pkg/egts"
+import "github.com/egorban/navprot/pkg/egts"
 
 // NavProtocol is an interface for arbitrary navigation protocol.
 type NavProtocol interface {
