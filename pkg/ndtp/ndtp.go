@@ -78,12 +78,10 @@ const (
 	// PacketType defines NPH type field
 	PacketType = "PacketType"
 	// PeerAddress defines NPH peer_address field for NPH_SGC_CONN_REQUEST
-    PeerAddress = "PeerAddress"
+	PeerAddress = "PeerAddress"
 
 	// NphResultOk means request was successfully completed
 	NphResultOk = 0
-	// PeerAddress defines NPH peer_address field for NPH_SGC_CONN_REQUEST
-	PeerAddress = "PeerAddress"
 )
 
 // Parse NDTP packet. Parsed information is stored in variable with NDTP type.
@@ -222,8 +220,8 @@ func Change(packet []byte, changes map[string]int) []byte {
 		binary.LittleEndian.PutUint16(packet[nplHeaderLen+2:], uint16(packetType))
 	}
 	if peerAddress, ok := changes[PeerAddress]; ok {
-    	binary.LittleEndian.PutUint32(packet[nplHeaderLen+nphHeaderLen+6:], uint32(peerAddress))
-    }
+		binary.LittleEndian.PutUint32(packet[nplHeaderLen+nphHeaderLen+6:], uint32(peerAddress))
+	}
 	crc := crc16(packet[nplHeaderLen:])
 	binary.BigEndian.PutUint16(packet[6:], crc)
 	return packet
